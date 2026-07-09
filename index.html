@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodePatch Pro // Control Quirúrgico de Estructuras</title>
+    <!-- FontAwesome para Iconos Profesionales -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-main: #0b111e;
+            --bg-card: #151f32;
+            --bg-input: #090d16;
+            --accent: #f97316;
+            --accent-hover: #ea580c;
+            --success: #10b981;
+            --success-hover: #059669;
+            --border: #243854;
+            --text-main: #f1f5f9;
+            --text-muted: #64748b;
+            --code-color: #38bdf8;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            padding: 24px;
+            margin: 0;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .dashboard {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Encabezado Premium */
+        header {
+            background: linear-gradient(90deg, var(--bg-card) 0%, #1e2d4a 100%);
+            padding: 20px 30px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand h1 span {
+            color: var(--accent);
+        }
+
+        .brand p {
+            margin: 4px 0 0 0;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* Zona de Carga Estilo Drag & Drop */
+        .upload-zone {
+            background-color: var(--bg-card);
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--accent);
+            background-color: #1a263d;
+        }
+
+        .upload-zone input[type="file"] {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .upload-icon {
+            font-size: 2rem;
+            color: var(--accent);
+        }
+
+        .file-status {
+            font-weight: 600;
+            color: var(--success);
+            font-size: 1rem;
+        }
+
+        /* Contenedor de Paneles */
+        .workspace {
+            display: grid;
+            grid-template-columns: 1fr 480px;
+            gap: 24px;
+            align-items: start;
+        }
+
+        @media (max-width: 1200px) {
+            .workspace { grid-template-columns: 1fr; }
+        }
+
+        .panel {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .panel-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-top: 0;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+            color: #cbd5e1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Visor de Código Indexado */
+        .code-container {
+            background-color: var(--bg-input);
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            overflow: auto;
+            max-height: 680px;
+            height: 680px;
+            font-family: 'Consolas', 'Fira Code', monospace;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        .code-row {
+            display: flex;
+            transition: background-color 0.1s;
+        }
+
+        .code-row:hover {
+            background-color: #111b2d;
+        }
+
+        .line-num {
+            color: var(--text-muted);
+            width: 55px;
+            text-align: right;
+            padding-right: 15px;
+            user-select: none;
+            border-right: 1px solid #1e293b;
+            background-color: #05080f;
+            font-weight: 500;
+        }
+
+        .line-content {
+            padding-left: 12px;
+            color: var(--code-color);
+            white-space: pre;
+        }
+
+        /* Consola de Control de Parches */
+        .console-form {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .range-selectors {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .input-group label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #94a3b8;
+        }
+
+        .input-group input[type="number"] {
+            background-color: var(--bg-input);
+            border: 1px solid var(--border);
+            color: #fff;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: bold;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .input-group input:focus {
+            border-color: var(--accent);
+        }
+
+        .textarea-group textarea {
+            width: 100%;
+            height: 320px;
+            background-color: var(--bg-input);
+            border: 1px solid var(--border);
+            color: #a7f3d0;
+            font-family: 'Consolas', monospace;
+            font-size: 0.85rem;
+            padding: 12px;
+            box-sizing: border-box;
+            border-radius: 6px;
+            resize: none;
+            outline: none;
+        }
+
+        .textarea-group textarea:focus {
+            border-color: var(--accent);
+        }
+
+        /* Botonera Premium */
+        .actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 5px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background-color: var(--accent);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .btn-success {
+            background-color: var(--success);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.2);
+        }
+
+        .btn-success:hover {
+            background-color: var(--success-hover);
+        }
+
+        .placeholder-text {
+            color: var(--text-muted);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="dashboard">
+    <!-- Header -->
+    <header>
+        <div class="brand">
+            <h1><i class="fa-solid fa-layer-group"></i> CodePatch <span>Pro</span></h1>
+            <p>Fusión e Inyección Quirúrgica de Código sin Pérdida de Estructuras</p>
+        </div>
+        <div style="font-size: 0.8rem; color: var(--text-muted);">
+            Status: <span style="color: var(--success); font-weight: bold;"><i class="fa-solid fa-circle-check"></i> Ready</span>
+        </div>
+    </header>
+
+    <!-- Zona de carga -->
+    <div class="upload-zone">
+        <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+        <div>
+            <strong style="font-size: 1rem;">Arrastra tu archivo aquí o haz clic para explorar</strong>
+            <p style="margin: 4px 0 0 0; font-size: 0.8rem; color: var(--text-muted);">Soporta formatos .html, .txt y .js</p>
+        </div>
+        <input type="file" id="fileEngine" accept=".html,.txt,.js">
+        <div id="fileStatus" class="file-status" style="display:none;"></div>
+    </div>
+
+    <!-- Espacio de trabajo de dos columnas -->
+    <div class="workspace">
+        <!-- Panel Izquierdo: El Visor de Código -->
+        <div class="panel">
+            <div class="panel-title"><i class="fa-solid fa-code"></i> Consola del Código Original</div>
+            <div class="code-container" id="codeViewport">
+                <div class="placeholder-text">
+                    <i class="fa-solid fa-code-branch style='font-size: 2rem;'"></i>
+                    <span>Esperando carga de archivo para mapear líneas...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel Derecho: Consola de Parcheo -->
+        <div class="panel">
+            <div class="panel-title"><i class="fa-solid fa-wand-magic-sparkles"></i> Inyector de Parches Fijos</div>
+            
+            <div class="console-form">
+                <div class="range-selectors">
+                    <div class="input-group">
+                        <label><i class="fa-solid fa-play"></i> Línea Inicial:</label>
+                        <input type="number" id="startRange" min="1" value="1">
+                    </div>
+                    <div class="input-group">
+                        <label><i class="fa-solid fa-stop"></i> Línea Final:</label>
+                        <input type="number" id="endRange" min="1" value="1">
+                    </div>
+                </div>
+
+                <div class="input-group textarea-group">
+                    <label><i class="fa-solid fa-terminal"></i> Bloque de Reemplazo Sugerido:</label>
+                    <textarea id="patchPayload" placeholder="<!-- Pega aquí exactamente el fragmento limpio proporcionado por la IA -->"></textarea>
+                </div>
+
+                <div class="actions">
+                    <button type="button" class="btn btn-primary" onclick="injectPatch()">
+                        <i class="fa-solid fa-bolt"></i> Ejecutar Fusión en Caliente
+                    </button>
+                    <button type="button" class="btn btn-success" id="downloadTrigger" style="display:none;" onclick="triggerDownload()">
+                        <i class="fa-solid fa-file-arrow-down"></i> Descargar Archivo Compilado
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let masterLines = [];
+    let originalFileName = "output.html";
+
+    // Manejador del motor de archivos
+    document.getElementById('fileEngine').addEventListener('change', function(e) {
+        const targetFile = e.target.files[0];
+        if (!targetFile) return;
+
+        originalFileName = targetFile.name;
+        const statusBox = document.getElementById('fileStatus');
+        statusBox.innerHTML = `<i class="fa-solid fa-file-code"></i> Archivo Activo: ${targetFile.name} (${targetFile.size} bytes)`;
+        statusBox.style.display = "block";
+
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            const rawContent = evt.target.result;
+            masterLines = rawContent.split(/\r?\n/);
+            renderEngine();
+        };
+        reader.readAsText(targetFile);
+    });
+
+    // Motor de Renderizado con Números de Línea Protegidos
+    function renderEngine() {
+        const viewport = document.getElementById('codeViewport');
+        viewport.innerHTML = '';
+
+        if (masterLines.length === 0) {
+            viewport.innerHTML = '<div class="placeholder-text">Archivo sin líneas legibles.</div>';
+            return;
+        }
+
+        const fragment = document.createDocumentFragment();
+
+        masterLines.forEach((line, index) => {
+            const row = document.createElement('div');
+            row.className = 'code-row';
+
+            const numContainer = document.createElement('div');
+            numContainer.className = 'line-num';
+            numContainer.innerText = index + 1;
+
+            const contentContainer = document.createElement('div');
+            contentContainer.className = 'line-content';
+            contentContainer.innerText = line === "" ? " " : line;
+
+            row.appendChild(numContainer);
+            row.appendChild(contentContainer);
+            fragment.appendChild(row);
+        });
+
+        viewport.appendChild(fragment);
+    }
+
+    // Inyector Quirúrgico (Splice en Caliente)
+    function injectPatch() {
+        if (masterLines.length === 0) {
+            alert("Acción inválida: Carga primero un archivo fuente en la plataforma.");
+            return;
+        }
+
+        const targetStart = parseInt(document.getElementById('startRange').value) - 1;
+        const targetEnd = parseInt(document.getElementById('endRange').value) - 1;
+        const payload = document.getElementById('patchPayload').value;
+
+        if (targetStart < 0 || targetEnd >= masterLines.length || targetStart > targetEnd) {
+            alert(`Error de desbordamiento: Rango inválido. El archivo actual posee exactamente ${masterLines.length} líneas.`);
+            return;
+        }
+
+        // Parsear el payload por líneas
+        const payloadLines = payload.split(/\r?\n/);
+        const linesToDelete = (targetEnd - targetStart) + 1;
+
+        // Mutación controlada en memoria
+        masterLines.splice(targetStart, linesToDelete, ...payloadLines);
+
+        // Actualizar UI
+        renderEngine();
+        document.getElementById('downloadTrigger').style.display = 'flex';
+        alert("¡Parche acoplado correctamente en memoria! Revisa los cambios e indexación antes de descargar.");
+    }
+
+    // Compilador y Descarga
+    function triggerDownload() {
+        const outputStream = masterLines.join('\n');
+        const blob = new Blob([outputStream], { type: 'text/plain;charset=utf-8' });
+        const downloadUrl = URL.createObjectURL(blob);
+
+        const hook = document.createElement('a');
+        hook.href = downloadUrl;
+        hook.download = originalFileName;
+        document.body.appendChild(hook);
+        hook.click();
+        document.body.removeChild(hook);
+        URL.revokeObjectURL(downloadUrl);
+    }
+</script>
+
+</body>
+</html>
