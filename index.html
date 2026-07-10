@@ -3,32 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CodePatch Pro // Control Quirúrgico de Estructuras</title>
-    <!-- FontAwesome para Iconos Profesionales -->
+    <title>CodePatch Pro // Control Quirúrgico Inteligente</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --bg-main: #0b111e;
-            --bg-card: #151f32;
+            --bg-main: #050b14;
+            --bg-card: #111e30;
             --bg-input: #090d16;
-            --accent: #f97316;
-            --accent-hover: #ea580c;
+            --accent: #ff6600;
+            --accent-hover: #e05a00;
             --success: #10b981;
             --success-hover: #059669;
+            --purple-ia: #8b5cf6;
             --border: #243854;
             --text-main: #f1f5f9;
             --text-muted: #64748b;
             --code-color: #38bdf8;
         }
 
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
             background-color: var(--bg-main);
             color: var(--text-main);
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            padding: 24px;
-            margin: 0;
+            padding: 20px;
             min-height: 100vh;
-            box-sizing: border-box;
         }
 
         .dashboard {
@@ -39,38 +43,50 @@
             gap: 20px;
         }
 
-        /* Encabezado Premium */
+        /* Encabezado Premium con imagen abstracta de fondo tecnológico */
         header {
-            background: linear-gradient(90deg, var(--bg-card) 0%, #1e2d4a 100%);
-            padding: 20px 30px;
+            position: relative;
+            background: linear-gradient(90deg, rgba(17, 30, 48, 0.95) 0%, rgba(30, 45, 74, 0.85) 100%), 
+                        url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80');
+            background-size: cover;
+            background-position: center;
+            padding: 25px 30px;
             border-radius: 12px;
             border: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            flex-wrap: wrap;
+            gap: 15px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
         }
 
         .brand h1 {
-            margin: 0;
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             letter-spacing: 0.5px;
             display: flex;
             align-items: center;
             gap: 12px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.6);
         }
 
-        .brand h1 span {
-            color: var(--accent);
-        }
+        .brand h1 span { color: var(--accent); }
+        .brand p { margin-top: 4px; font-size: 0.85rem; color: #cbd5e1; text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
 
-        .brand p {
-            margin: 4px 0 0 0;
-            font-size: 0.85rem;
-            color: var(--text-muted);
+        .api-token-box {
+            background: rgba(5, 11, 20, 0.85);
+            padding: 8px 15px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            backdrop-filter: blur(4px);
         }
+        .api-token-box label { font-size: 0.8rem; font-weight: bold; color: var(--purple-ia); white-space: nowrap; }
+        .api-token-box input { background: transparent; border: none; color: #38bdf8; font-family: monospace; font-size: 0.9rem; outline: none; width: 180px; }
 
-        /* Zona de Carga Estilo Drag & Drop */
+        /* Zona de Carga */
         .upload-zone {
             background-color: var(--bg-card);
             border: 2px dashed var(--border);
@@ -79,40 +95,18 @@
             text-align: center;
             position: relative;
             transition: all 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
         }
 
-        .upload-zone:hover {
-            border-color: var(--accent);
-            background-color: #1a263d;
-        }
+        .upload-zone:hover { border-color: var(--accent); background-color: #16263d; }
+        .upload-zone input[type="file"] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+        .upload-icon { font-size: 2rem; color: var(--accent); margin-bottom: 8px; }
+        .file-status { font-weight: 600; color: var(--success); font-size: 0.95rem; margin-top: 5px; }
 
-        .upload-zone input[type="file"] {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            opacity: 0;
-            cursor: pointer;
-        }
-
-        .upload-icon {
-            font-size: 2rem;
-            color: var(--accent);
-        }
-
-        .file-status {
-            font-weight: 600;
-            color: var(--success);
-            font-size: 1rem;
-        }
-
-        /* Contenedor de Paneles */
+        /* Espacio de Trabajo Adaptativo */
         .workspace {
             display: grid;
             grid-template-columns: 1fr 480px;
-            gap: 24px;
+            gap: 20px;
             align-items: start;
         }
 
@@ -125,13 +119,14 @@
             border: 1px solid var(--border);
             border-radius: 12px;
             padding: 20px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            width: 100%;
+            overflow: hidden; /* Evita fugas visuales estructurales */
         }
 
         .panel-title {
             font-size: 1rem;
             font-weight: 600;
-            margin-top: 0;
             margin-bottom: 15px;
             padding-bottom: 10px;
             border-bottom: 1px solid var(--border);
@@ -147,22 +142,14 @@
             border: 1px solid #1e293b;
             border-radius: 8px;
             overflow: auto;
-            max-height: 680px;
-            height: 680px;
+            height: 650px;
             font-family: 'Consolas', 'Fira Code', monospace;
             font-size: 0.85rem;
             line-height: 1.5;
         }
 
-        .code-row {
-            display: flex;
-            transition: background-color 0.1s;
-        }
-
-        .code-row:hover {
-            background-color: #111b2d;
-        }
-
+        .code-row { display: flex; transition: background-color 0.1s; }
+        .code-row:hover { background-color: #111b2d; }
         .line-num {
             color: var(--text-muted);
             width: 55px;
@@ -173,169 +160,103 @@
             background-color: #05080f;
             font-weight: 500;
         }
+        .line-content { padding-left: 12px; color: var(--code-color); white-space: pre; }
 
-        .line-content {
-            padding-left: 12px;
-            color: var(--code-color);
-            white-space: pre;
-        }
-
-        /* Consola de Control de Parches */
-        .console-form {
-            display: flex;
-            flex-direction: column;
-            gap: 18px;
-        }
-
-        .range-selectors {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .input-group label {
-            font-size: 0.85rem;
-            font-weight: 500;
-            color: #94a3b8;
-        }
-
-        .input-group input[type="number"] {
+        /* Consola de Control y Formularios */
+        .console-form { display: flex; flex-direction: column; gap: 15px; width: 100%; }
+        .range-selectors { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .input-group { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+        .input-group label { font-size: 0.85rem; font-weight: 500; color: #94a3b8; }
+        
+        .input-group input, .input-group textarea {
+            width: 100%; /* Forzado para no salirse de los límites */
             background-color: var(--bg-input);
             border: 1px solid var(--border);
             color: #fff;
             padding: 10px;
             border-radius: 6px;
-            font-size: 1rem;
-            font-weight: bold;
+            font-size: 0.95rem;
             outline: none;
             transition: border-color 0.2s;
         }
+        .input-group input:focus, .input-group textarea:focus { border-color: var(--accent); }
+        .input-group input[type="number"] { font-weight: bold; }
+        .input-group textarea { height: 260px; font-family: 'Consolas', monospace; font-size: 0.85rem; color: #a7f3d0; resize: none; }
 
-        .input-group input:focus {
-            border-color: var(--accent);
-        }
-
-        .textarea-group textarea {
-            width: 100%;
-            height: 320px;
-            background-color: var(--bg-input);
-            border: 1px solid var(--border);
-            color: #a7f3d0;
-            font-family: 'Consolas', monospace;
-            font-size: 0.85rem;
-            padding: 12px;
-            box-sizing: border-box;
-            border-radius: 6px;
-            resize: none;
-            outline: none;
-        }
-
-        .textarea-group textarea:focus {
-            border-color: var(--accent);
-        }
-
-        /* Botonera Premium */
-        .actions {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-top: 5px;
-        }
-
+        /* Botonera */
+        .actions { display: flex; flex-direction: column; gap: 10px; }
         .btn {
             width: 100%;
-            padding: 14px;
+            padding: 12px;
             border: none;
             border-radius: 6px;
             font-weight: 600;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             cursor: pointer;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
             transition: all 0.2s ease;
         }
+        .btn-primary { background-color: var(--accent); color: #fff; }
+        .btn-primary:hover { background-color: var(--accent-hover); }
+        .btn-ia { background-color: var(--purple-ia); color: #fff; }
+        .btn-ia:hover { background-color: #7c3aed; }
+        .btn-success { background-color: var(--success); color: #fff; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); }
+        .btn-success:hover { background-color: var(--success-hover); }
 
-        .btn-primary {
-            background-color: var(--accent);
-            color: #fff;
-        }
-
-        .btn-primary:hover {
-            background-color: var(--accent-hover);
-        }
-
-        .btn-success {
-            background-color: var(--success);
-            color: #fff;
-            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.2);
-        }
-
-        .btn-success:hover {
-            background-color: var(--success-hover);
-        }
-
-        .placeholder-text {
-            color: var(--text-muted);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            gap: 10px;
-        }
+        .placeholder-text { color: var(--text-muted); display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 10px; padding: 40px 0; }
     </style>
 </head>
 <body>
 
 <div class="dashboard">
-    <!-- Header -->
     <header>
         <div class="brand">
-            <h1><i class="fa-solid fa-layer-group"></i> CodePatch <span>Pro</span></h1>
-            <p>Fusión e Inyección Quirúrgica de Código sin Pérdida de Estructuras</p>
+            <h1><i class="fa-solid fa-code-commit"></i> CodePatch <span>Pro</span></h1>
+            <p>Fusión e Inyección Quirúrgica de Código Avanzado</p>
         </div>
-        <div style="font-size: 0.8rem; color: var(--text-muted);">
-            Status: <span style="color: var(--success); font-weight: bold;"><i class="fa-solid fa-circle-check"></i> Ready</span>
+        <div class="api-token-box">
+            <label><i class="fa-solid fa-brain"></i> GEMINI KEY:</label>
+            <input type="password" id="geminiKey" placeholder="AIzaSy..." value="AIzaSyD7-REMOVED-FOR-SECURITY">
         </div>
     </header>
 
-    <!-- Zona de carga -->
     <div class="upload-zone">
-        <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+        <i class="fa-solid fa-folder-open upload-icon"></i>
         <div>
-            <strong style="font-size: 1rem;">Arrastra tu archivo aquí o haz clic para explorar</strong>
-            <p style="margin: 4px 0 0 0; font-size: 0.8rem; color: var(--text-muted);">Soporta formatos .html, .txt y .js</p>
+            <strong>Arrastra tu archivo aquí o haz clic para cargarlo</strong>
+            <p style="margin-top: 3px; font-size: 0.8rem; color: var(--text-muted);">Formatos soportados: .html, .txt, .js</p>
         </div>
         <input type="file" id="fileEngine" accept=".html,.txt,.js">
         <div id="fileStatus" class="file-status" style="display:none;"></div>
     </div>
 
-    <!-- Espacio de trabajo de dos columnas -->
     <div class="workspace">
-        <!-- Panel Izquierdo: El Visor de Código -->
         <div class="panel">
-            <div class="panel-title"><i class="fa-solid fa-code"></i> Consola del Código Original</div>
+            <div class="panel-title"><i class="fa-solid fa-code"></i> Visor de Archivo Fuente Indexado</div>
             <div class="code-container" id="codeViewport">
                 <div class="placeholder-text">
-                    <i class="fa-solid fa-code-branch style='font-size: 2rem;'"></i>
-                    <span>Esperando carga de archivo para mapear líneas...</span>
+                    <i class="fa-solid fa-terminal fa-2x"></i>
+                    <span>Carga un archivo origen para calcular su mapa de líneas...</span>
                 </div>
             </div>
         </div>
 
-        <!-- Panel Derecho: Consola de Parcheo -->
         <div class="panel">
-            <div class="panel-title"><i class="fa-solid fa-wand-magic-sparkles"></i> Inyector de Parches Fijos</div>
+            <div class="panel-title"><i class="fa-solid fa-screwdriver-wrench"></i> Consola de Inyección de Cambios</div>
             
             <div class="console-form">
+                <div class="input-group">
+                    <label><i class="fa-solid fa-terminal"></i> 1. Pega el nuevo fragmento propuesto:</label>
+                    <textarea id="patchPayload" placeholder=""></textarea>
+                </div>
+
+                <button type="button" class="btn btn-ia" onclick="detectarRangoConIA()">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> 2. Auto-Detectar Líneas con IA
+                </button>
+
                 <div class="range-selectors">
                     <div class="input-group">
                         <label><i class="fa-solid fa-play"></i> Línea Inicial:</label>
@@ -347,17 +268,12 @@
                     </div>
                 </div>
 
-                <div class="input-group textarea-group">
-                    <label><i class="fa-solid fa-terminal"></i> Bloque de Reemplazo Sugerido:</label>
-                    <textarea id="patchPayload" placeholder="<!-- Pega aquí exactamente el fragmento limpio proporcionado por la IA -->"></textarea>
-                </div>
-
-                <div class="actions">
+                <div class="actions" style="margin-top: 5px;">
                     <button type="button" class="btn btn-primary" onclick="injectPatch()">
-                        <i class="fa-solid fa-bolt"></i> Ejecutar Fusión en Caliente
+                        <i class="fa-solid fa-bolt"></i> 3. Ejecutar Fusión Quirúrgica
                     </button>
                     <button type="button" class="btn btn-success" id="downloadTrigger" style="display:none;" onclick="triggerDownload()">
-                        <i class="fa-solid fa-file-arrow-down"></i> Descargar Archivo Compilado
+                        <i class="fa-solid fa-download"></i> 4. Descargar Archivo Compilado
                     </button>
                 </div>
             </div>
@@ -367,103 +283,115 @@
 
 <script>
     let masterLines = [];
-    let originalFileName = "output.html";
+    let originalFileName = "index.html";
 
-    // Manejador del motor de archivos
     document.getElementById('fileEngine').addEventListener('change', function(e) {
         const targetFile = e.target.files[0];
         if (!targetFile) return;
-
         originalFileName = targetFile.name;
-        const statusBox = document.getElementById('fileStatus');
-        statusBox.innerHTML = `<i class="fa-solid fa-file-code"></i> Archivo Activo: ${targetFile.name} (${targetFile.size} bytes)`;
-        statusBox.style.display = "block";
+        document.getElementById('fileStatus').innerHTML = `<i class="fa-solid fa-circle-check"></i> Activo: ${targetFile.name} (${targetFile.size} bytes)`;
+        document.getElementById('fileStatus').style.display = "block";
 
         const reader = new FileReader();
         reader.onload = function(evt) {
-            const rawContent = evt.target.result;
-            masterLines = rawContent.split(/\r?\n/);
+            masterLines = evt.target.result.split(/\r?\n/);
             renderEngine();
         };
         reader.readAsText(targetFile);
     });
 
-    // Motor de Renderizado con Números de Línea Protegidos
     function renderEngine() {
         const viewport = document.getElementById('codeViewport');
         viewport.innerHTML = '';
-
-        if (masterLines.length === 0) {
-            viewport.innerHTML = '<div class="placeholder-text">Archivo sin líneas legibles.</div>';
-            return;
-        }
-
+        if (masterLines.length === 0) return;
         const fragment = document.createDocumentFragment();
-
         masterLines.forEach((line, index) => {
             const row = document.createElement('div');
             row.className = 'code-row';
-
             const numContainer = document.createElement('div');
             numContainer.className = 'line-num';
             numContainer.innerText = index + 1;
-
             const contentContainer = document.createElement('div');
             contentContainer.className = 'line-content';
             contentContainer.innerText = line === "" ? " " : line;
-
             row.appendChild(numContainer);
             row.appendChild(contentContainer);
             fragment.appendChild(row);
         });
-
         viewport.appendChild(fragment);
     }
 
-    // Inyector Quirúrgico (Splice en Caliente)
-    function injectPatch() {
-        if (masterLines.length === 0) {
-            alert("Acción inválida: Carga primero un archivo fuente en la plataforma.");
-            return;
-        }
+    // CONEXIÓN AL MOTOR DE IA PARA DETECTAR RANGOS DE LÍNEAS
+    async function detectarRangoConIA() {
+        const apiKey = document.getElementById('geminiKey').value.trim();
+        const payload = document.getElementById('patchPayload').value.trim();
+        if(!apiKey) return alert("Por favor ingresa tu Gemini API Key en el encabezado.");
+        if(masterLines.length === 0) return alert("Primero debes cargar el archivo original.");
+        if(!payload) return alert("Pega el fragmento propuesto que deseas buscar en el código.");
 
+        alert("Analizando similitudes en la estructura del código con Gemini... Espera un momento.");
+
+        // Reducimos el mapa de líneas a formato indexado para que la IA lo lea fácilmente
+        const codigoConLineas = masterLines.map((l, i) => `${i + 1}: ${l}`).join('\n');
+
+        const promptSystem = `Eres un asistente experto en refactorización. Tu único objetivo es analizar un archivo fuente numerado línea por línea y determinar el rango exacto de líneas (Inicio y Fin) que corresponden al fragmento de código provisto, el cual va a ser sustituido o mejorado. Debes responder estrictamente en formato JSON válido sin Markdown. Ejemplo de respuesta: {"inicio": 45, "fin": 82}`;
+
+        const promptUser = `CÓDIGO FUENTE COMPLETO DEL ARCHIVO:\n\n${codigoConLineas}\n\nFRAGMENTO NUEVO QUE VA A SUSTITUIR AL VIEJO:\n\n${payload}`;
+
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: `${promptSystem}\n\n${promptUser}` }] }]
+                })
+            });
+
+            const data = await response.json();
+            let rawText = data.candidates[0].content.parts[0].text.trim();
+            // Limpieza por si devuelve bloques de código markdown
+            rawText = rawText.replace(/```json|```/g, "");
+            
+            const resultado = JSON.parse(rawText);
+            if(resultado.inicio && resultado.fin) {
+                document.getElementById('startRange').value = resultado.inicio;
+                document.getElementById('endRange').value = resultado.fin;
+                alert(`¡Análisis Exitoso! La IA detectó que el bloque corresponde desde la línea ${resultado.inicio} hasta la línea ${resultado.fin}.`);
+            } else {
+                alert("La IA no pudo definir un rango exacto. Por favor verifícalo de manera manual.");
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Error al conectar con la API de Gemini. Verifica tu conexión o el formato de tu API Key.");
+        }
+    }
+
+    function injectPatch() {
+        if (masterLines.length === 0) return alert("Carga un archivo fuente.");
         const targetStart = parseInt(document.getElementById('startRange').value) - 1;
         const targetEnd = parseInt(document.getElementById('endRange').value) - 1;
         const payload = document.getElementById('patchPayload').value;
 
         if (targetStart < 0 || targetEnd >= masterLines.length || targetStart > targetEnd) {
-            alert(`Error de desbordamiento: Rango inválido. El archivo actual posee exactamente ${masterLines.length} líneas.`);
-            return;
+            return alert(`Rango inválido. El archivo posee ${masterLines.length} líneas.`);
         }
 
-        // Parsear el payload por líneas
         const payloadLines = payload.split(/\r?\n/);
-        const linesToDelete = (targetEnd - targetStart) + 1;
-
-        // Mutación controlada en memoria
-        masterLines.splice(targetStart, linesToDelete, ...payloadLines);
-
-        // Actualizar UI
+        masterLines.splice(targetStart, (targetEnd - targetStart) + 1, ...payloadLines);
         renderEngine();
         document.getElementById('downloadTrigger').style.display = 'flex';
-        alert("¡Parche acoplado correctamente en memoria! Revisa los cambios e indexación antes de descargar.");
+        alert("¡Fusión realizada! Ya puedes descargar tu archivo corregido.");
     }
 
-    // Compilador y Descarga
     function triggerDownload() {
-        const outputStream = masterLines.join('\n');
-        const blob = new Blob([outputStream], { type: 'text/plain;charset=utf-8' });
-        const downloadUrl = URL.createObjectURL(blob);
-
+        const blob = new Blob([masterLines.join('\n')], { type: 'text/plain;charset=utf-8' });
         const hook = document.createElement('a');
-        hook.href = downloadUrl;
+        hook.href = URL.createObjectURL(blob);
         hook.download = originalFileName;
         document.body.appendChild(hook);
         hook.click();
         document.body.removeChild(hook);
-        URL.revokeObjectURL(downloadUrl);
     }
 </script>
-
 </body>
 </html>
