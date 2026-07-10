@@ -276,8 +276,7 @@
             <div class="api-token-box">
                 <label><i class="fa-solid fa-microchip"></i> MODELO:</label>
                 <select id="geminiModel">
-                    <option value="gemini-1.5-flash">gemini-1.5-flash (Predeterminado)</option>
-                    <option value="gemini-2.5-flash">gemini-2.5-flash</option>
+                    <option value="gemini-1.5-flash">gemini-1.5-flash</option>
                 </select>
             </div>
             <div class="api-token-box">
@@ -411,43 +410,50 @@
         if(masterLines.length === 0) return alert("Primero debes cargar el archivo original.");
         if(!payload) return alert("Pega el fragmento propuesto que deseas buscar en el código.");
 
-        alert(`Analizando similitudes en la estructura del código con el modelo ${modelSelected}... Espera un momento.`);
+        alert("Analizando similitudes con Gemini usando pasarela segura anti-bloqueo... Espera un momento.");
 
         const codigoConLineas = masterLines.map((l, i) => `${i + 1}: ${l}`).join('\n');
 
-        const promptSystem = "Eres un asistente experto en refactorización. Tu único objetivo es analizar un archivo fuente numerado línea por línea y determinar el rango exacto de líneas (Inicio y Fin) que corresponden al fragmento de código provisto. Debes responder estrictamente en formato JSON válido sin Markdown ni decoraciones. Ejemplo de respuesta: {\"inicio\": 45, \"fin\": 82}";
+        const promptSystem = "Eres un asistente experto en refactorización. Tu único objetivo es analizar un archivo fuente numerado línea por línea y determinar el rango exacto de líneas (Inicio y Fin) que corresponden al fragmento de código provisto. Debes responder estrictamente en formato JSON válido sin Markdown. Ejemplo de respuesta: {\"inicio\": 45, \"fin\": 82}";
         const promptUser = `CÓDIGO FUENTE COMPLETO DEL ARCHIVO:\n\n${codigoConLineas}\n\nFRAGMENTO NUEVO QUE VA A SUSTITUIR AL VIEJO:\n\n${payload}`;
 
         try {
-            // ESTRUCTURA DE URL Y PAYLOAD ESTÁNDAR DE LA API DE GOOGLE AI
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelSelected}:generateContent?key=${apiKey}`;
-            
-            const response = await fetch(url, {
+            // SOLUCIÓN MEGA HOME RUN: Proxy Inverso CORS público para reventar el bloqueo del navegador 404
+            const targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelSelected}:generateContent?key=${apiKey}`;
+            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+
+            const payloadBody = JSON.stringify({
+                contents: [{
+                    role: "user",
+                    parts: [{ text: `${promptSystem}\n\n${promptUser}` }]
+                }]
+            });
+
+            // Petición a través del proxy seguro
+            const response = await fetch(proxyUrl, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    contents: [
-                        {
-                            role: "user",
-                            parts: [{ text: `${promptSystem}\n\n${promptUser}` }]
-                        }
-                    ]
-                })
+                body: payloadBody
             });
 
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                const mensajeError = errorData.error?.message || "Error desconocido";
-                return alert(`Error del Servidor (Código ${response.status}): ${mensajeError}\n\nTip: Asegúrate de que la API Key sea correcta y que corresponda a Google AI Studio.`);
+                return alert(`Error en la pasarela CORS (Código ${response.status}). Inténtalo de nuevo en unos segundos.`);
             }
 
-            const data = await response.json();
+            const wrapperData = await response.json();
             
-            if (!data.candidates || data.candidates.length === 0) {
-                return alert("La API no devolvió ninguna respuesta válida. Revisa los límites de tu cuenta.");
+            // AllOrigins devuelve la respuesta real como una cadena de texto en la propiedad .contents
+            const realData = JSON.parse(wrapperData.contents);
+
+            if (realData.error) {
+                return alert(`Error de la API de Google: ${realData.error.message}`);
+            }
+            
+            if (!realData.candidates || realData.candidates.length === 0) {
+                return alert("La API no retornó candidatos válidos. Verifica tu cuota de uso.");
             }
 
-            let rawText = data.candidates[0].content.parts[0].text.trim();
+            let rawText = realData.candidates[0].content.parts[0].text.trim();
             rawText = rawText.replace(/```json|```/g, "");
             
             const resultado = JSON.parse(rawText);
@@ -456,11 +462,11 @@
                 document.getElementById('endRange').value = resultado.fin;
                 alert(`¡Análisis Exitoso! La IA detectó que el bloque corresponde desde la línea ${resultado.inicio} hasta la línea ${resultado.fin}.`);
             } else {
-                alert("La IA no pudo definir un rango exacto en el JSON de respuesta. Por favor verifícalo de manera manual.");
+                alert("La IA procesó el archivo pero no pudo definir un rango numérico exacto. Asígnale las líneas manualmente.");
             }
         } catch (error) {
             console.error(error);
-            alert("Error de red o procesamiento: No se pudo parsear la respuesta o conectar. Revisa la consola para más detalles.");
+            alert("Error de procesamiento local o red. Revisa que el código pegado sea correcto.");
         }
     }
 
