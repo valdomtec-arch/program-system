@@ -288,7 +288,14 @@ margin: 6px 0;
 .empresas-table tr td:first-child { border-left: 1px solid var(--border-color); border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
 .empresas-table tr td:last-child { border-right: 1px solid var(--border-color); border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
 .empresas-table tr:hover td { background: #1e314b; }
-.empresas-table td img { width: 42px; height: 42px; object-fit: contain; border-radius: 6px; background: white; padding: 2px;} 
+.empresas-table td img { 
+  width: 42px; 
+  height: 42px; 
+  object-fit: contain; 
+  border-radius: 6px; 
+  background: white; 
+  padding: 2px;
+}
 
 .selector-puestos-verde { 
 background: #112d24; 
@@ -515,12 +522,6 @@ pre.json-view { background:#061c15; color:#34d399; border:1px solid var(--green-
 
 <div class="admin-container"> 
   <h1><i class="fas fa-sliders-h"></i> Panel de Administración Global</h1> 
-
-  <!-- CONFIGURACIÓN API KEY -->
-  <div class="ia-box" style="margin-bottom: 15px; background: rgba(255, 102, 0, 0.03); border-color: var(--border-color);">
-    <label style="color:var(--primary-orange);font-weight:bold;display:block;margin-bottom:5px;"><i class="fas fa-key"></i> Configuración de API Key (Gemini)</label>
-    <input type="password" id="geminiApiKeyInput" placeholder="Pega aquí tu clave API de Gemini...">
-  </div>
 
   <!-- MÓDULO 2: MENÚ DE NAVEGACIÓN GLOBAL (TABS) -->
   <div class="tabs-menu"> 
@@ -1445,7 +1446,7 @@ function renderizarTablaEmpresas() {
     const tagsArray = (emp.tags || '').split(',').filter(t => t.trim());
     
     tr.innerHTML = `
-      <td><img src="${urlLogo}" alt="Logo" onerror="this.src='${LOGO_POR_DEFECTO}'" style="width:42px;height:42px;object-fit:contain;border-radius:6px;background:white;padding:2px;"></td>
+     <td><img src="${urlLogo}" alt="Logo" onerror="this.src='${LOGO_POR_DEFECTO}'"></td> style="width:42px;height:42px;object-fit:contain;border-radius:6px;background:white;padding:2px;"></td>
       <td style="font-weight:bold; color:var(--primary-orange); font-family:'Courier New',monospace;">${emp.idFirebase}</td>
       <td style="font-weight:600;">${emp.nombre || '-'}</td>
       <td><i class="fas fa-map-marker-alt" style="color:#f59e0b; font-size:0.75rem;"></i> ${emp.ubicacion || '-'}</td>
