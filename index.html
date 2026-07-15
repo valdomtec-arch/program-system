@@ -1446,7 +1446,7 @@ function renderizarTablaEmpresas() {
     const tagsArray = (emp.tags || '').split(',').filter(t => t.trim());
     
     tr.innerHTML = `
-     <td><img src="${urlLogo}" alt="Logo" onerror="this.src='${LOGO_POR_DEFECTO}'"></td> style="width:42px;height:42px;object-fit:contain;border-radius:6px;background:white;padding:2px;"></td>
+     <td><img src="${urlLogo}" alt="Logo" onerror="this.src='${LOGO_POR_DEFECTO}'"></td>
       <td style="font-weight:bold; color:var(--primary-orange); font-family:'Courier New',monospace;">${emp.idFirebase}</td>
       <td style="font-weight:600;">${emp.nombre || '-'}</td>
       <td><i class="fas fa-map-marker-alt" style="color:#f59e0b; font-size:0.75rem;"></i> ${emp.ubicacion || '-'}</td>
