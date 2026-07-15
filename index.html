@@ -812,14 +812,14 @@ pre.json-view { background:#061c15; color:#34d399; border:1px solid var(--green-
 
     <!-- Gráficos analíticos de Demanda Real -->
     <div class="charts-grid" style="margin-bottom: 25px;">
-        <div class="chart-card" style="background: var(--card-bg); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color);">
+        <div class="chart-card" style="background: var(--card-bg); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); flex: 1;">
             <h3 style="margin-top:0; font-size: 16px; color: var(--primary-orange);"><i class="fas fa-building"></i> Top Empresas con Más Postulados</h3>
             <div style="position: relative; height: 280px;">
                 <canvas id="chartEmpresasReales"></canvas>
             </div>
         </div>
 
-        <div class="chart-card" style="background: var(--card-bg); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color);">
+        <div class="chart-card" style="background: var(--card-bg); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); flex: 1;">
             <h3 style="margin-top:0; font-size: 16px; color: var(--primary-orange);"><i class="fas fa-briefcase"></i> Demanda Real por Vacante</h3>
             <div style="position: relative; height: 280px;">
                 <canvas id="chartVacantesReales"></canvas>
@@ -1005,8 +1005,9 @@ let filtroAgendaActual = 'TODOS';
 const BASE_URL_GITHUB = 'https://valdomtec-arch.github.io/bolsa-trabajo-principal/vacante.html?empresa=';
 const LOGO_POR_DEFECTO = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="%23ff6600"><rect width="64" height="64" rx="12"/><text x="50%25" y="55%25" font-size="32" text-anchor="middle" fill="white" font-family="Arial" font-weight="bold">E</text></svg>';
 
-// Instancias de Gráficos de Pestaña 4
+// Instancias de Gráficos de Pestaña 4 y Pestaña 3
 let chartCandidatosInst = null, chartVacantesInst = null, chartEmpresasInst = null;
+let chartEmpresasRealesInst = null, chartVacantesRealesInst = null;
 
 // ==============================================
 // 1. FUNCIONAMIENTO DE PESTAÑAS (100% CORREGIDO)
@@ -1035,12 +1036,92 @@ function inicializarNavegacionTabs() {
           if (tabTarget === 'tabRegistros') {
             calcularMetricasDemograficas();
             renderizarTablaPostulantes();
+            renderizarGraficosPestañaTres();
           }
         }, 100);
       }
     });
   });
 }
+
+// ============================================================
+// PESTAÑA 3 - GRÁFICOS ANALÍTICOS DEMOGRÁFICOS REALES
+// ============================================================
+window.renderizarGraficosPestañaTres = function() {
+  // 1. TOP EMPRESAS CON MÁS POSTULADOS
+  const conteoEmpresas = {};
+  listaPostulantesGlobal.forEach(p => {
+    const emp = (p.empresa || p.empresaId || "Sin especificar").toString().trim();
+    conteoEmpresas[emp] = (conteoEmpresas[emp] || 0) + 1;
+  });
+  
+  const empresasOrdenadas = Object.entries(conteoEmpresas).sort((a, b) => b[1] - a[1]);
+  const labelsEmp = empresasOrdenadas.slice(0, 5).map(e => e[0]);
+  const dataEmp = empresasOrdenadas.slice(0, 5).map(e => e[1]);
+  
+  const ctxEmpReales = document.getElementById('chartEmpresasReales');
+  if (ctxEmpReales) {
+    if (chartEmpresasRealesInst) chartEmpresasRealesInst.destroy();
+    chartEmpresasRealesInst = new Chart(ctxEmpReales, {
+      type: 'bar',
+      data: {
+        labels: labelsEmp.length ? labelsEmp : ["Sin Datos"],
+        datasets: [{
+          label: 'Postulantes',
+          data: dataEmp.length ? dataEmp : [0],
+          backgroundColor: '#ff6600',
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: '#94a3b8' } },
+          y: { beginAtZero: true, ticks: { color: '#94a3b8', stepSize: 1 } }
+        }
+      }
+    });
+  }
+
+  // 2. DEMANDA REAL POR VACANTE
+  const conteoVacantes = {};
+  listaPostulantesGlobal.forEach(p => {
+    const vac = (p.vacanteInteres || p.vacante || "Sin especificar").toString().toUpperCase().trim();
+    conteoVacantes[vac] = (conteoVacantes[vac] || 0) + 1;
+  });
+  
+  const vacantesOrdenadas = Object.entries(conteoVacantes).sort((a, b) => b[1] - a[1]);
+  const labelsVac = vacantesOrdenadas.slice(0, 5).map(v => v[0]);
+  const dataVac = vacantesOrdenadas.slice(0, 5).map(v => v[1]);
+  
+  const ctxVacReales = document.getElementById('chartVacantesReales');
+  if (ctxVacReales) {
+    if (chartVacantesRealesInst) chartVacantesRealesInst.destroy();
+    chartVacantesRealesInst = new Chart(ctxVacReales, {
+      type: 'bar',
+      data: {
+        labels: labelsVac.length ? labelsVac : ["Sin Datos"],
+        datasets: [{
+          label: 'Postulantes',
+          data: dataVac.length ? dataVac : [0],
+          backgroundColor: '#8b5cf6',
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: '#94a3b8' } },
+          y: { beginAtZero: true, ticks: { color: '#94a3b8', stepSize: 1 } }
+        }
+      }
+    });
+  }
+};
 
 // ============================================================
 // PESTAÑA 4 - ESTADÍSTICAS DEMOGRÁFICAS (CONTEOS REALES)
@@ -1278,6 +1359,11 @@ function escucharNodosFirebase() {
     }
     calcularMetricasDemograficas();
     renderizarTablaPostulantes();
+    
+    // Si la pestaña actual es la Agenda y Postulantes, actualiza los gráficos inmediatamente
+    if (document.getElementById('tabRegistros').classList.contains('active')) {
+      renderizarGraficosPestañaTres();
+    }
   });
 }
 
@@ -1610,7 +1696,7 @@ function abrirEditorPostulante(id) {
   document.getElementById('editPostulanteDia').value = p.diaEntrevista || "";
   document.getElementById('editPostulanteHora').value = p.horaCita || "";
   document.getElementById('editPostulanteReclutador').value = p.reclutadorAsignado || "";
-  document.getElementById('editPostulanteNotas').value = p.notasInternas || "";
+  document.getElementById('editPostulanteNotas').value = p.notesInternas || p.notasInternas || "";
   document.getElementById('panelEdicionPostulante').classList.add('open');
 }
 
