@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Checador Emco • Gobernanza y Asistencia Remota</title>
+  <title>Checador Emco • Registro de Asistencia y Puntualidad</title>
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -26,7 +26,8 @@
               cyan: '#06b6d4',
               purple: '#a855f7',
               emerald: '#10b981',
-              rose: '#ef4444'
+              rose: '#ef4444',
+              amber: '#f59e0b'
             }
           },
           boxShadow: {
@@ -47,7 +48,6 @@
     .touch-target {
       min-height: 48px;
     }
-    /* Efecto espejo para selfie natural */
     .mirror-mode {
       transform: scaleX(-1);
     }
@@ -55,17 +55,15 @@
 </head>
 <body class="bg-cyber-bg text-slate-100 font-sans min-h-screen antialiased p-3 sm:p-6 flex flex-col justify-between selection:bg-cyber-accent selection:text-white">
 
-  <!-- ========================================== -->
-  <!-- BARRA SUPERIOR / ESTADO DEL SERVIDOR       -->
-  <!-- ========================================== -->
+  <!-- ENCABEZADO -->
   <header class="max-w-xl w-full mx-auto glass-panel border border-cyber-border rounded-2xl p-4 mb-4 shadow-glow-card flex items-center justify-between">
     <div class="flex items-center gap-3">
       <div class="w-10 h-10 rounded-xl bg-cyber-accent/15 border border-cyber-accent/40 flex items-center justify-center text-cyber-accent shadow-glow-accent">
-        <i class="fas fa-fingerprint text-lg"></i>
+        <i class="fas fa-business-time text-lg"></i>
       </div>
       <div>
         <h1 class="font-black text-white text-sm tracking-wider uppercase font-mono">Checador Emco</h1>
-        <span class="text-[10px] text-cyber-cyan font-mono block">Enlace Gobernanza Canónica</span>
+        <span class="text-[10px] text-cyber-cyan font-mono block">Control de Asistencia & Puntualidad</span>
       </div>
     </div>
     <div id="statusServidorBadge" class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono font-bold">
@@ -73,16 +71,14 @@
     </div>
   </header>
 
-  <!-- ========================================== -->
-  <!-- ESTADO 1: INICIO DE SESIÓN GOBERNANZA      -->
-  <!-- ========================================== -->
+  <!-- PANTALLA 1: LOGIN -->
   <main id="seccionLogin" class="max-w-xl w-full mx-auto glass-panel rounded-3xl border border-cyber-border p-6 shadow-glow-card my-auto space-y-5">
     <div class="text-center space-y-2">
       <span class="px-3 py-1 rounded-full text-[11px] font-mono font-bold uppercase bg-cyber-purple/15 text-cyber-purple border border-cyber-purple/30">
-        <i class="fas fa-shield-halved me-1"></i> Protocolo Remoto Seguro
+        <i class="fas fa-shield-halved me-1"></i> Identidad y Gobernanza
       </span>
-      <h2 class="text-xl font-black text-white">Acceso de Personal</h2>
-      <p class="text-xs text-slate-400">Ingresa tus credenciales autorizadas del sistema ERP para registrar tu asistencia laboral.</p>
+      <h2 class="text-xl font-black text-white">Acceso al Checador</h2>
+      <p class="text-xs text-slate-400">Ingresa tus credenciales del sistema para validar el turno de hoy.</p>
     </div>
 
     <form id="formLogin" onsubmit="iniciarSesionStaff(event)" class="space-y-4">
@@ -106,26 +102,29 @@
 
       <div id="loginErrorMsg" class="hidden p-3 rounded-xl bg-cyber-rose/10 border border-cyber-rose/30 text-rose-400 text-xs font-mono flex items-center gap-2">
         <i class="fas fa-circle-exclamation text-sm shrink-0"></i>
-        <span id="txtLoginError">Credenciales incorrectas.</span>
+        <span id="txtLoginError">Credenciales incorrectas o usuario suspendido.</span>
       </div>
 
       <button type="submit" id="btnLoginSubmit" class="w-full py-3.5 px-4 rounded-xl bg-cyber-accent hover:bg-cyber-accentHover text-slate-950 font-black text-xs uppercase tracking-wider transition-all shadow-glow-accent touch-target flex items-center justify-center gap-2">
-        <i class="fas fa-arrow-right-to-bracket"></i> Validar Cuenta en Gobernanza
+        <i class="fas fa-arrow-right-to-bracket"></i> Iniciar y Validar Cuenta
       </button>
     </form>
   </main>
 
-  <!-- ========================================== -->
-  <!-- ESTADO 2: PANEL DE CONTROL DE ASISTENCIA   -->
-  <!-- ========================================== -->
-  <main id="seccionChecador" class="max-w-xl w-full mx-auto glass-panel rounded-3xl border border-cyber-border p-6 shadow-glow-card my-auto space-y-6 hidden">
+  <!-- PANTALLA 2: CHECADOR DE ASISTENCIA Y PUNTUALIDAD -->
+  <main id="seccionChecador" class="max-w-xl w-full mx-auto glass-panel rounded-3xl border border-cyber-border p-6 shadow-glow-card my-auto space-y-5 hidden">
     
     <!-- Ficha del Colaborador -->
     <div class="flex items-center justify-between border-b border-cyber-border pb-4">
       <div class="space-y-0.5">
-        <span id="lblPerfilRol" class="text-[10px] font-mono uppercase font-bold text-cyber-accent bg-cyber-accent/10 border border-cyber-accent/30 px-2.5 py-0.5 rounded-full">
-          Cargando rol...
-        </span>
+        <div class="flex items-center gap-2">
+          <span id="lblPerfilRol" class="text-[10px] font-mono uppercase font-bold text-cyber-accent bg-cyber-accent/10 border border-cyber-accent/30 px-2.5 py-0.5 rounded-full">
+            Cargando rol...
+          </span>
+          <span class="text-[10px] font-mono text-slate-400 border border-slate-700 px-2 py-0.5 rounded-full">
+            Turno: 09:00 - 18:00
+          </span>
+        </div>
         <h2 id="lblPerfilNombre" class="text-lg font-black text-white tracking-tight">Colaborador</h2>
         <span id="lblPerfilEmail" class="text-xs text-slate-400 font-mono block">email@dominio.com</span>
       </div>
@@ -134,33 +133,40 @@
       </button>
     </div>
 
-    <!-- Reloj Digital y Fecha -->
-    <div class="text-center py-4 bg-slate-950/60 rounded-2xl border border-cyber-border space-y-1">
+    <!-- Reloj Digital y Metadata -->
+    <div class="text-center py-3.5 bg-slate-950/60 rounded-2xl border border-cyber-border space-y-1">
       <div id="txtRelojDigital" class="text-3xl sm:text-4xl font-black font-mono text-cyber-cyan tracking-wider">00:00:00</div>
-      <div id="txtFechaActual" class="text-xs text-slate-400 font-mono uppercase">Cargando fecha canónica...</div>
+      <div id="txtFechaActual" class="text-xs text-slate-400 font-mono uppercase">Cargando fecha...</div>
       <div class="pt-2 text-[11px] text-slate-400 font-mono flex items-center justify-center gap-2">
         <i class="fas fa-network-wired text-cyber-emerald"></i> IP Pública: <strong id="lblIpPublica" class="text-white">Detectando...</strong>
       </div>
     </div>
 
-    <!-- Estado Actual de la Jornada -->
-    <div id="tarjetaEstadoJornada" class="p-4 rounded-2xl border border-cyber-border bg-slate-900/50 space-y-3">
+    <!-- Tarjeta de Estado del Día -->
+    <div class="p-4 rounded-2xl border border-cyber-border bg-slate-900/50 space-y-3">
       <div class="flex justify-between items-center text-xs font-mono">
-        <span class="text-slate-400 uppercase font-bold">Estatus del día:</span>
+        <span class="text-slate-400 uppercase font-bold">Estatus del Día:</span>
         <span id="badgeJornadaEstatus" class="px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 font-bold">Sin Registro</span>
       </div>
 
       <div class="grid grid-cols-2 gap-3 pt-2 border-t border-cyber-border/40 text-xs font-mono">
         <div class="space-y-1">
-          <span class="text-slate-400 block text-[11px]">Entrada:</span>
-          <span id="txtHoraEntradaRegistrada" class="text-white font-bold text-sm">--:--:--</span>
+          <div class="flex justify-between items-center">
+            <span class="text-slate-400 text-[11px]">Entrada:</span>
+            <span id="badgeDictamenEntrada" class="text-[9px] px-1.5 py-0.5 rounded font-bold uppercase hidden">A Tiempo</span>
+          </div>
+          <span id="txtHoraEntradaRegistrada" class="text-white font-bold text-sm block">--:--:--</span>
           <div id="thumbEntradaContainer" class="hidden pt-1">
             <img id="imgThumbEntrada" class="w-14 h-14 rounded-lg object-cover border border-cyber-accent">
           </div>
         </div>
+
         <div class="space-y-1">
-          <span class="text-slate-400 block text-[11px]">Salida:</span>
-          <span id="txtHoraSalidaRegistrada" class="text-white font-bold text-sm">--:--:--</span>
+          <div class="flex justify-between items-center">
+            <span class="text-slate-400 text-[11px]">Salida:</span>
+            <span id="badgeDictamenSalida" class="text-[9px] px-1.5 py-0.5 rounded font-bold uppercase hidden">Completa</span>
+          </div>
+          <span id="txtHoraSalidaRegistrada" class="text-white font-bold text-sm block">--:--:--</span>
           <div id="thumbSalidaContainer" class="hidden pt-1">
             <img id="imgThumbSalida" class="w-14 h-14 rounded-lg object-cover border border-cyber-rose">
           </div>
@@ -168,42 +174,38 @@
       </div>
     </div>
 
-    <!-- Botonera de Acción -->
-    <div class="space-y-3 pt-2">
-      <button id="btnChecarEntrada" onclick="abrirCamaraModal('ENTRADA')" class="w-full py-4 px-4 rounded-2xl bg-cyber-emerald hover:bg-emerald-600 text-slate-950 font-black text-sm uppercase tracking-wider transition-all shadow-md touch-target flex items-center justify-center gap-2">
+    <!-- Botones de Acción -->
+    <div class="space-y-3 pt-1">
+      <button id="btnChecarEntrada" onclick="abrirCamaraModal('ENTRADA')" class="w-full py-3.5 px-4 rounded-2xl bg-cyber-emerald hover:bg-emerald-600 text-slate-950 font-black text-sm uppercase tracking-wider transition-all shadow-md touch-target flex items-center justify-center gap-2">
         <i class="fas fa-camera text-base"></i> Registrar Entrada (Selfie)
       </button>
 
-      <button id="btnChecarSalida" onclick="abrirCamaraModal('SALIDA')" class="w-full py-4 px-4 rounded-2xl bg-cyber-rose hover:bg-rose-600 text-white font-black text-sm uppercase tracking-wider transition-all shadow-md touch-target flex items-center justify-center gap-2 hidden">
-        <i class="fas fa-arrow-right-from-bracket text-base"></i> Finalizar Jornada (Selfie)
+      <button id="btnChecarSalida" onclick="abrirCamaraModal('SALIDA')" class="w-full py-3.5 px-4 rounded-2xl bg-cyber-rose hover:bg-rose-600 text-white font-black text-sm uppercase tracking-wider transition-all shadow-md touch-target flex items-center justify-center gap-2 hidden">
+        <i class="fas fa-arrow-right-from-bracket text-base"></i> Finalizar Turno (Selfie)
       </button>
     </div>
   </main>
 
-  <!-- ========================================== -->
-  <!-- MODAL RESPONSIVE: CAPTURA FOTOGRÁFICA      -->
-  <!-- ========================================== -->
+  <!-- MODAL DE CAPTURA RESPONSIVE -->
   <div id="modalCapturaCamara" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 sm:p-4">
     <div class="glass-panel border border-cyber-accent rounded-3xl max-w-sm w-full p-4 sm:p-5 shadow-2xl space-y-4 text-center">
-      
       <div class="flex justify-between items-center border-b border-cyber-border pb-2">
         <h3 id="modalCamaraTitulo" class="text-xs font-black uppercase text-cyber-accent font-mono flex items-center gap-1.5">
-          <i class="fas fa-camera"></i> Validación de Asistencia
+          <i class="fas fa-camera"></i> Validación Facial
         </h3>
         <button onclick="cerrarCamaraModal()" class="text-slate-400 hover:text-white text-base font-bold p-1">✕</button>
       </div>
 
       <p class="text-[11px] text-slate-300">
-        Enfoca tu rostro con la cámara frontal para comprobar el inicio de tu turno remoto.
+        Enfoca tu rostro con la cámara frontal para corroborar tu identidad en este registro.
       </p>
 
-      <!-- Visor de Video en vivo -->
       <div class="relative w-full aspect-square max-w-[280px] mx-auto rounded-2xl overflow-hidden border-2 border-cyber-accent shadow-inner bg-black flex items-center justify-center">
         <video id="videoPreview" autoplay playsinline muted class="w-full h-full object-cover mirror-mode"></video>
         <canvas id="canvasFoto" class="hidden"></canvas>
         <div id="loaderCamara" class="absolute inset-0 bg-slate-950/80 flex flex-col items-center justify-center text-xs font-mono text-cyber-accent gap-2">
           <i class="fas fa-circle-notch fa-spin text-xl"></i>
-          <span>Iniciando sensor frontal...</span>
+          <span>Activando cámara...</span>
         </div>
       </div>
 
@@ -219,12 +221,10 @@
   </div>
 
   <footer class="max-w-xl w-full mx-auto text-center py-4 text-[11px] font-mono text-slate-500">
-    Checador Remoto Emco • Gobernanza Multi-Plataforma
+    Checador Emco • Gobernanza y Asistencia
   </footer>
 
-  <!-- ========================================== -->
-  <!-- SCRIPT MOTOR VINCULADO AL FIREBASE DEL ERP -->
-  <!-- ========================================== -->
+  <!-- MOTOR VINCULADO AL NODO 'registro_asistencia_puntualidad' -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { 
@@ -234,7 +234,6 @@
       getDatabase, ref, get, set, update, serverTimestamp, onValue 
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    // Configuración canónica canjeada exactamente de tu sistema ERP (m5_staff)
     const firebaseConfig = {
       apiKey: "AIzaSyDxgP1YnycCEqkQ2vr3SPkwc9QMhtG8Zqw",
       authDomain: "bolsa-de-trabajo-a52e4.firebaseapp.com",
@@ -250,17 +249,21 @@
     const auth = getAuth(app);
     const db = getDatabase(app);
 
+    // Horarios Base de Control Remoto
+    const HORARIO_ENTRADA_OFICIAL = "09:00";
+    const HORARIO_SALIDA_OFICIAL = "18:00";
+    const TOLERANCIA_MINUTOS = 15;
+
     let usuarioActual = null;
     let streamCamara = null;
-    let accionActual = 'ENTRADA'; // 'ENTRADA' | 'SALIDA'
+    let accionActual = 'ENTRADA';
     let ipDetectada = 'Desconocida';
 
-    // Iniciar reloj digital y captura de IP
     setInterval(actualizarRelojDigital, 1000);
     actualizarRelojDigital();
     detectarIpPublica();
 
-    // 1. Escucha reactiva del estado de autenticación
+    // 1. Escuchar sesión y validar con la Gobernanza del ERP
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
         mostrarVistaLogin();
@@ -268,7 +271,6 @@
       }
 
       try {
-        // Validación con el nodo de Gobernanza Staff de tu base de datos
         const snapUser = await get(ref(db, `usuarios_reclutadores/${user.uid}`));
         
         if (!snapUser.exists()) {
@@ -280,7 +282,7 @@
         const perfil = snapUser.val();
 
         if (perfil.estatus !== 'Activo') {
-          alert("Tu cuenta de colaborador se encuentra inactiva o suspendida en Gobernanza.");
+          alert("Tu cuenta se encuentra suspendida o inactiva en Gobernanza.");
           await signOut(auth);
           return;
         }
@@ -298,12 +300,12 @@
         escucharAsistenciaHoy();
 
       } catch (err) {
-        console.error("Error al validar sesión en Gobernanza:", err);
-        alert("Fallo de conexión al verificar perfil en el servidor.");
+        console.error("Error al validar gobernanza:", err);
+        alert("Fallo de conexión al validar perfil en el servidor.");
       }
     });
 
-    // 2. Login de Staff
+    // 2. Acceso Staff
     window.iniciarSesionStaff = async (e) => {
       e.preventDefault();
       const email = document.getElementById('loginEmail').value.trim();
@@ -319,15 +321,14 @@
         await signInWithEmailAndPassword(auth, email, pass);
       } catch (err) {
         boxError.classList.remove('hidden');
-        document.getElementById('txtLoginError').textContent = "Correo o contraseña no válidos.";
       } finally {
         btn.disabled = false;
-        btn.innerHTML = `<i class="fas fa-arrow-right-to-bracket"></i> Validar Cuenta en Gobernanza`;
+        btn.innerHTML = `<i class="fas fa-arrow-right-to-bracket"></i> Iniciar y Validar Cuenta`;
       }
     };
 
     window.cerrarSesionStaff = async () => {
-      if (confirm("¿Deseas cerrar tu sesión del checador?")) {
+      if (confirm("¿Cerrar sesión en el checador?")) {
         await signOut(auth);
       }
     };
@@ -347,7 +348,6 @@
       document.getElementById('lblPerfilRol').textContent = `${usuarioActual.rol} (N${usuarioActual.nivel})`;
     }
 
-    // 3. Clave de fecha canónica (YYYY-MM-DD)
     function obtenerFechaClave() {
       const hoy = new Date();
       const yyyy = hoy.getFullYear();
@@ -356,14 +356,13 @@
       return `${yyyy}-${mm}-${dd}`;
     }
 
-    // 4. Escuchar el nodo de asistencia del día
+    // 3. Escuchar nodo especializado 'registro_asistencia_puntualidad'
     function escucharAsistenciaHoy() {
       const fechaClave = obtenerFechaClave();
-      const path = `asistencias_remotas/${fechaClave}/${usuarioActual.uid}`;
+      const path = `registro_asistencia_puntualidad/${fechaClave}/${usuarioActual.uid}`;
 
       onValue(ref(db, path), (snap) => {
-        const data = snap.val();
-        actualizarPantallaAsistencia(data);
+        actualizarPantallaAsistencia(snap.val());
       });
     }
 
@@ -373,6 +372,9 @@
       const txtSalida = document.getElementById('txtHoraSalidaRegistrada');
       const btnEntrada = document.getElementById('btnChecarEntrada');
       const btnSalida = document.getElementById('btnChecarSalida');
+
+      const badgeDictamenEntrada = document.getElementById('badgeDictamenEntrada');
+      const badgeDictamenSalida = document.getElementById('badgeDictamenSalida');
 
       const imgEntrada = document.getElementById('imgThumbEntrada');
       const boxEntrada = document.getElementById('thumbEntradaContainer');
@@ -384,6 +386,8 @@
         badge.className = "px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 font-bold";
         txtEntrada.textContent = "--:--:--";
         txtSalida.textContent = "--:--:--";
+        badgeDictamenEntrada.classList.add('hidden');
+        badgeDictamenSalida.classList.add('hidden');
         btnEntrada.classList.remove('hidden');
         btnSalida.classList.add('hidden');
         boxEntrada.classList.add('hidden');
@@ -391,24 +395,42 @@
         return;
       }
 
-      // Si ya hay entrada
+      // Marcación de Entrada registrada
       txtEntrada.textContent = data.entrada.hora_local || "Registrada";
+      badgeDictamenEntrada.classList.remove('hidden');
+      badgeDictamenEntrada.textContent = data.entrada.dictamen || "Registrado";
+      
+      if (data.entrada.dictamen === "A TIEMPO") {
+        badgeDictamenEntrada.className = "text-[9px] px-1.5 py-0.5 rounded font-bold uppercase bg-emerald-500/15 text-emerald-400 border border-emerald-500/30";
+      } else {
+        badgeDictamenEntrada.className = "text-[9px] px-1.5 py-0.5 rounded font-bold uppercase bg-amber-500/15 text-amber-400 border border-amber-500/30";
+      }
+
       if (data.entrada.foto_b64) {
         imgEntrada.src = data.entrada.foto_b64;
         boxEntrada.classList.remove('hidden');
       }
 
+      // Estado del Turno
       if (!data.salida) {
         badge.textContent = "🟢 En Turno Activo";
         badge.className = "px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold";
         btnEntrada.classList.add('hidden');
         btnSalida.classList.remove('hidden');
         txtSalida.textContent = "--:--:--";
+        badgeDictamenSalida.classList.add('hidden');
         boxSalida.classList.add('hidden');
       } else {
-        badge.textContent = "🔵 Jornada Concluida";
+        badge.textContent = "🔵 Turno Concluido";
         badge.className = "px-2.5 py-0.5 rounded-full bg-sky-500/15 text-sky-400 border border-sky-500/30 font-bold";
-        txtSalida.textContent = data.salida.hora_local || "Finalizada";
+        txtSalida.textContent = data.salida.hora_local || "Finalizado";
+        
+        badgeDictamenSalida.classList.remove('hidden');
+        badgeDictamenSalida.textContent = data.salida.dictamen || "Completado";
+        badgeDictamenSalida.className = data.salida.dictamen === "JORNADA CUMPLIDA"
+          ? "text-[9px] px-1.5 py-0.5 rounded font-bold uppercase bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+          : "text-[9px] px-1.5 py-0.5 rounded font-bold uppercase bg-rose-500/15 text-rose-400 border border-rose-500/30";
+
         if (data.salida.foto_b64) {
           imgSalida.src = data.salida.foto_b64;
           boxSalida.classList.remove('hidden');
@@ -418,12 +440,38 @@
       }
     }
 
-    // 5. Gestión de Cámara Web / Móvil Frontal
+    // 4. Reglas y Cálculo de Puntualidad
+    function evaluarDictamenEntrada(horaRegistroStr) {
+      const [hReg, mReg] = horaRegistroStr.split(':').map(Number);
+      const [hEsp, mEsp] = HORARIO_ENTRADA_OFICIAL.split(':').map(Number);
+
+      const minReg = hReg * 60 + mReg;
+      const minLimite = hEsp * 60 + mEsp + TOLERANCIA_MINUTOS;
+
+      if (minReg <= minLimite) {
+        return "A TIEMPO";
+      } else {
+        const retardo = minReg - (hEsp * 60 + mEsp);
+        return `RETARDO (${retardo} MIN)`;
+      }
+    }
+
+    function evaluarDictamenSalida(horaSalidaStr) {
+      const [hReg, mReg] = horaSalidaStr.split(':').map(Number);
+      const [hEsp, mEsp] = HORARIO_SALIDA_OFICIAL.split(':').map(Number);
+
+      const minReg = hReg * 60 + mReg;
+      const minEsp = hEsp * 60 + mEsp;
+
+      return (minReg >= minEsp) ? "JORNADA CUMPLIDA" : "SALIDA ANTICIPADA";
+    }
+
+    // 5. Cámara frontal y compresión
     window.abrirCamaraModal = async (tipo) => {
       accionActual = tipo;
       document.getElementById('modalCamaraTitulo').innerHTML = tipo === 'ENTRADA' 
-        ? `<i class="fas fa-camera text-cyber-emerald"></i> Selfie de Inicio de Jornada`
-        : `<i class="fas fa-camera text-cyber-rose"></i> Selfie de Término de Jornada`;
+        ? `<i class="fas fa-camera text-cyber-emerald"></i> Registro de Entrada`
+        : `<i class="fas fa-camera text-cyber-rose"></i> Registro de Salida`;
 
       document.getElementById('modalCapturaCamara').classList.remove('hidden');
       document.getElementById('loaderCamara').classList.remove('hidden');
@@ -431,13 +479,8 @@
       const video = document.getElementById('videoPreview');
 
       try {
-        // { facingMode: "user" } fuerza la cámara frontal tipo selfie en celulares y tablets
         streamCamara = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: "user",
-            width: { ideal: 640 },
-            height: { ideal: 640 }
-          },
+          video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 640 } },
           audio: false
         });
 
@@ -446,8 +489,7 @@
           document.getElementById('loaderCamara').classList.add('hidden');
         };
       } catch (err) {
-        console.error("Error al solicitar cámara:", err);
-        alert("Es indispensable conceder permiso a la cámara frontal para comprobar la asistencia.");
+        alert("Es necesario dar permiso a la cámara frontal para registrar asistencia.");
         cerrarCamaraModal();
       }
     };
@@ -460,28 +502,22 @@
       document.getElementById('modalCapturaCamara').classList.add('hidden');
     };
 
-    // 6. Captura, compresión a 400x400 JPG (~35KB) y guardado canónico
     window.capturarYEnviarAsistencia = async () => {
       const btn = document.getElementById('btnDispararFoto');
       const video = document.getElementById('videoPreview');
       const canvas = document.getElementById('canvasFoto');
 
       btn.disabled = true;
-      btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Registrando...`;
+      btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Guardando...`;
 
-      // Redimensión instantánea a 400x400 para ahorrar banda ancha y almacenamiento
       canvas.width = 400;
       canvas.height = 400;
       const ctx = canvas.getContext('2d');
-
-      // Dibujar con efecto espejo para coherencia visual
       ctx.translate(400, 0);
       ctx.scale(-1, 1);
       ctx.drawImage(video, 0, 0, 400, 400);
 
-      // Comprimir a JPEG calidad 60%
       const fotoBase64 = canvas.toDataURL('image/jpeg', 0.6);
-
       const fechaClave = obtenerFechaClave();
       const ahora = new Date();
       const horaStr = ahora.toLocaleTimeString('es-MX', { hour12: false });
@@ -495,42 +531,52 @@
       };
 
       try {
-        const rootRef = ref(db, `asistencias_remotas/${fechaClave}/${usuarioActual.uid}`);
+        const nodoRef = ref(db, `registro_asistencia_puntualidad/${fechaClave}/${usuarioActual.uid}`);
         
         if (accionActual === 'ENTRADA') {
-          await update(rootRef, {
+          const dictamen = evaluarDictamenEntrada(horaStr);
+          await update(nodoRef, {
             uid: usuarioActual.uid,
             colaborador: usuarioActual.nombre,
             email: usuarioActual.email,
             rol: usuarioActual.rol,
             division: usuarioActual.division,
-            entrada: payloadTurno,
+            horario_programado: {
+              entrada: HORARIO_ENTRADA_OFICIAL,
+              salida: HORARIO_SALIDA_OFICIAL,
+              tolerancia_mins: TOLERANCIA_MINUTOS
+            },
+            entrada: {
+              ...payloadTurno,
+              dictamen: dictamen
+            },
             estatus_jornada: 'ACTIVO'
           });
         } else {
-          await update(rootRef, {
-            salida: payloadTurno,
+          const dictamen = evaluarDictamenSalida(horaStr);
+          await update(nodoRef, {
+            salida: {
+              ...payloadTurno,
+              dictamen: dictamen
+            },
             estatus_jornada: 'CONCLUIDO'
           });
         }
 
         cerrarCamaraModal();
-        alert(`¡Asistencia de ${accionActual} registrada correctamente!`);
+        alert(`¡Asistencia de ${accionActual} registrada exitosamente!`);
 
       } catch (err) {
-        console.error("Error al registrar asistencia:", err);
-        alert("Error al escribir el registro en el servidor: " + err.message);
+        alert("Error al escribir registro en el servidor: " + err.message);
       } finally {
         btn.disabled = false;
         btn.innerHTML = `<i class="fas fa-circle-dot"></i> Checar`;
       }
     };
 
-    // Funciones de apoyo
     function actualizarRelojDigital() {
       const ahora = new Date();
       document.getElementById('txtRelojDigital').textContent = ahora.toLocaleTimeString('es-MX', { hour12: false });
-      
       const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
       document.getElementById('txtFechaActual').textContent = ahora.toLocaleDateString('es-MX', opciones);
     }
