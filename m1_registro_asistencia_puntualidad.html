@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>M1: Registro de Asistencia y Puntualidad • Auditoría</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome 6 Pro CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            cyber: {
+              bg: '#030712',
+              card: '#0b1329',
+              cardAlt: '#111c38',
+              border: 'rgba(30, 58, 138, 0.4)',
+              accent: '#ff6600',
+              accentHover: '#e05500',
+              cyan: '#06b6d4',
+              purple: '#a855f7',
+              emerald: '#10b981',
+              rose: '#ef4444',
+              amber: '#f59e0b'
+            }
+          },
+          boxShadow: {
+            'glow-accent': '0 0 25px -5px rgba(255, 102, 0, 0.4)',
+            'glow-card': '0 20px 40px -15px rgba(0, 0, 0, 0.8)'
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    .glass-panel {
+      background: radial-gradient(135% 100% at 50% 0%, rgba(17, 28, 56, 0.75) 0%, rgba(11, 19, 41, 0.9) 100%);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .touch-target {
+      min-height: 44px;
+    }
+  </style>
+</head>
+<body class="bg-cyber-bg text-slate-100 font-sans min-h-screen antialiased p-3 sm:p-6 text-sm">
+
+  <!-- CANDADO SEGURIDAD GOBERNANZA -->
+  <div id="candadoSeguridad" class="flex flex-col items-center justify-center min-h-[70vh] text-center p-6 glass-panel rounded-3xl max-w-lg mx-auto border-cyber-rose/30 mt-10">
+    <div class="w-16 h-16 rounded-2xl bg-cyber-rose/10 border border-cyber-rose/30 flex items-center justify-center text-cyber-rose text-2xl mb-4">
+      <i class="fas fa-lock animate-pulse"></i>
+    </div>
+    <h2 class="text-lg font-black text-white uppercase">Validando Privilegios de Auditoría</h2>
+    <p class="text-xs text-slate-400 mt-2">Iniciando verificación con el Centro de Gobernanza de personal...</p>
+    <a href="checador_Emco.html" class="mt-5 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-cyber-accent text-slate-950 font-bold text-xs uppercase shadow-glow-accent">
+      <i class="fas fa-fingerprint"></i> Ir al Checador
+    </a>
+  </div>
+
+  <!-- PANEL PRINCIPAL DEL MÓDULO -->
+  <div id="panelPrincipal" class="max-w-7xl mx-auto space-y-6 hidden">
+    
+    <!-- BARRA SUPERIOR -->
+    <header class="glass-panel p-4 sm:p-5 rounded-3xl border border-cyber-border shadow-glow-card flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-cyber-accent/15 border border-cyber-accent/40 flex items-center justify-center text-cyber-accent shadow-glow-accent">
+          <i class="fas fa-clipboard-user text-lg"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="bg-cyber-accent/10 text-cyber-accent border border-cyber-accent/30 text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded">
+              M1 • Auditoría
+            </span>
+            <span class="text-xs text-slate-400 font-mono" id="txtUsuarioSesion">Verificando...</span>
+          </div>
+          <h1 class="text-lg sm:text-xl font-black text-white tracking-wide">
+            Registro de Asistencia y Puntualidad
+          </h1>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+        <a href="checador_Emco.html" class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 font-mono text-xs font-bold transition flex items-center gap-1.5 touch-target">
+          <i class="fas fa-fingerprint text-cyber-accent"></i> Checador
+        </a>
+        <button onclick="descargarReporteCSV()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-xs font-bold transition flex items-center gap-1.5 shadow-md touch-target">
+          <i class="fas fa-file-excel"></i> Exportar CSV
+        </button>
+      </div>
+    </header>
+
+    <!-- TARJETAS DE CONTROL / KPIS -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 font-mono">
+      <div class="glass-panel p-4 rounded-2xl border border-cyber-border">
+        <span class="text-[11px] text-slate-400 block uppercase">Total Checadas</span>
+        <span id="kpiTotal" class="text-2xl font-black text-white">0</span>
+      </div>
+      <div class="glass-panel p-4 rounded-2xl border border-emerald-500/30">
+        <span class="text-[11px] text-emerald-400 block uppercase">A Tiempo (≤ 09:15)</span>
+        <span id="kpiATiempo" class="text-2xl font-black text-emerald-400">0</span>
+      </div>
+      <div class="glass-panel p-4 rounded-2xl border border-amber-500/30">
+        <span class="text-[11px] text-amber-400 block uppercase">Retardos (> 09:15)</span>
+        <span id="kpiRetardos" class="text-2xl font-black text-amber-400">0</span>
+      </div>
+      <div class="glass-panel p-4 rounded-2xl border border-cyber-cyan/30">
+        <span class="text-[11px] text-cyber-cyan block uppercase">En Turno Activo</span>
+        <span id="kpiActivos" class="text-2xl font-black text-cyber-cyan">0</span>
+      </div>
+    </div>
+
+    <!-- FILTROS Y CONTROLES -->
+    <div class="glass-panel p-4 rounded-2xl border border-cyber-border flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-2">
+        <label class="text-xs font-mono uppercase text-slate-300 font-bold flex items-center gap-1.5">
+          <i class="fas fa-calendar-day text-cyber-accent"></i> Fecha a Consultar:
+        </label>
+        <input type="date" id="inputFechaFiltro" onchange="cambiarFechaConsulta()" class="bg-cyber-bg border border-cyber-border rounded-xl px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-cyber-accent">
+      </div>
+      <div class="flex items-center gap-2">
+        <span id="lblUltimaSincronizacion" class="text-[11px] text-slate-400 font-mono">En vivo</span>
+        <button onclick="cargarAsistenciasFecha()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs">
+          <i class="fas fa-rotate"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- TABLA DE VOLCADO DE ASISTENCIAS -->
+    <section class="glass-panel rounded-3xl border border-cyber-border overflow-hidden shadow-glow-card">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="bg-slate-950/80 border-b border-cyber-border text-slate-300 font-mono uppercase font-bold">
+              <th class="p-3.5 pl-5">Colaborador / Rol</th>
+              <th class="p-3.5 text-center">Selfie Entrada</th>
+              <th class="p-3.5">Hora Entrada</th>
+              <th class="p-3.5 text-center">Dictamen Entrada</th>
+              <th class="p-3.5 text-center">Selfie Salida</th>
+              <th class="p-3.5">Hora Salida</th>
+              <th class="p-3.5">Auditoría IP / Equipo</th>
+              <th class="p-3.5 text-center">Estatus</th>
+            </tr>
+          </thead>
+          <tbody id="tablaAsistenciasBody" class="divide-y divide-cyber-border/40 font-mono text-slate-200">
+            <tr><td colspan="8" class="p-6 text-center text-slate-500">Cargando registros...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- MODAL: VISOR DE SELFIE COMPROBATORIA -->
+  <div id="modalZoomFoto" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-3" onclick="cerrarModalZoom()">
+    <div class="glass-panel border border-cyber-accent rounded-3xl max-w-sm w-full p-4 text-center space-y-3" onclick="event.stopPropagation()">
+      <div class="flex justify-between items-center border-b border-cyber-border pb-2">
+        <h3 id="txtTituloModalFoto" class="text-xs font-mono font-bold text-cyber-accent uppercase">Evidencia Fotográfica</h3>
+        <button onclick="cerrarModalZoom()" class="text-slate-400 hover:text-white font-bold text-base">✕</button>
+      </div>
+      <img id="imgZoomElemento" class="w-full aspect-square object-cover rounded-2xl border border-cyber-border shadow-lg">
+      <div class="text-[11px] font-mono text-slate-400" id="txtDetalleModalFoto"></div>
+    </div>
+  </div>
+
+  <!-- FIREBASE MODULAR SDK V10 -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getDatabase, ref, get, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDxgP1YnycCEqkQ2vr3SPkwc9QMhtG8Zqw",
+      authDomain: "bolsa-de-trabajo-a52e4.firebaseapp.com",
+      databaseURL: "https://bolsa-de-trabajo-a52e4-default-rtdb.firebaseio.com",
+      projectId: "bolsa-de-trabajo-a52e4",
+      storageBucket: "bolsa-de-trabajo-a52e4.firebasestorage.app",
+      messagingSenderId: "592492733212",
+      appId: "1:592492733212:web:88e8ec243bd53608b6d0d9",
+      measurementId: "G-DH2LD3BJEF"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    let usuarioSesion = null;
+    let fechaActualSeleccionada = '';
+    let datosAsistenciasMemoria = {};
+
+    document.addEventListener("DOMContentLoaded", () => {
+      establecerFechaHoy();
+      validarAccesoGobernanza();
+    });
+
+    function establecerFechaHoy() {
+      const hoy = new Date();
+      const yyyy = hoy.getFullYear();
+      const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+      const dd = String(hoy.getDate()).padStart(2, '0');
+      fechaActualSeleccionada = `${yyyy}-${mm}-${dd}`;
+      document.getElementById('inputFechaFiltro').value = fechaActualSeleccionada;
+    }
+
+    function validarAccesoGobernanza() {
+      onAuthStateChanged(auth, async (user) => {
+        const candado = document.getElementById('candadoSeguridad');
+        const panel = document.getElementById('panelPrincipal');
+
+        if (!user) {
+          window.location.href = "checador_Emco.html";
+          return;
+        }
+
+        try {
+          const snapUser = await get(ref(db, `usuarios_reclutadores/${user.uid}`));
+          if (!snapUser.exists()) {
+            candado.classList.remove('hidden');
+            panel.classList.add('hidden');
+            return;
+          }
+
+          const perfil = snapUser.val();
+          if (perfil.estatus !== 'Activo') {
+            alert("Tu cuenta se encuentra inactiva.");
+            candado.classList.remove('hidden');
+            panel.classList.add('hidden');
+            return;
+          }
+
+          const nivel = parseInt(perfil.nivel) || 2;
+          // Permitir acceso a mandos y auditoría (Nivel >= 3)
+          if (nivel < 3) {
+            alert("Acceso exclusivo para Supervisores, Coordinadores y Dirección.");
+            candado.classList.remove('hidden');
+            panel.classList.add('hidden');
+            return;
+          }
+
+          usuarioSesion = {
+            uid: user.uid,
+            nombre: perfil.nombre || user.email,
+            rol: perfil.nombreRol || "Mando",
+            nivel: nivel
+          };
+
+          document.getElementById('txtUsuarioSesion').textContent = `${usuarioSesion.nombre} (${usuarioSesion.rol})`;
+          candado.classList.add('hidden');
+          panel.classList.remove('hidden');
+
+          escucharAsistenciasEnVivo();
+
+        } catch (e) {
+          console.error("Error Gobernanza M1:", e);
+          candado.classList.remove('hidden');
+        }
+      });
+    }
+
+    function escucharAsistenciasEnVivo() {
+      const path = `registro_asistencia_puntualidad/${fechaActualSeleccionada}`;
+      onValue(ref(db, path), (snap) => {
+        datosAsistenciasMemoria = snap.val() || {};
+        renderizarTabla();
+        document.getElementById('lblUltimaSincronizacion').textContent = `Sync: ${new Date().toLocaleTimeString('es-MX')}`;
+      });
+    }
+
+    window.cambiarFechaConsulta = () => {
+      const f = document.getElementById('inputFechaFiltro').value;
+      if (!f) return;
+      fechaActualSeleccionada = f;
+      escucharAsistenciasEnVivo();
+    };
+
+    window.cargarAsistenciasFecha = () => {
+      escucharAsistenciasEnVivo();
+    };
+
+    function renderizarTabla() {
+      const tbody = document.getElementById('tablaAsistenciasBody');
+      tbody.innerHTML = '';
+
+      const uids = Object.keys(datosAsistenciasMemoria);
+      
+      let tot = 0, aTiempo = 0, retardos = 0, activos = 0;
+
+      if (uids.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-500 font-mono">No hay registros de asistencia para el día ${fechaActualSeleccionada}.</td></tr>`;
+        actualizarKPIs(0, 0, 0, 0);
+        return;
+      }
+
+      uids.forEach(uid => {
+        const item = datosAsistenciasMemoria[uid];
+        tot++;
+
+        const esATiempo = item.entrada?.dictamen === 'A TIEMPO';
+        if (esATiempo) aTiempo++; else retardos++;
+
+        const enTurno = !item.salida;
+        if (enTurno) activos++;
+
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-900/40 border-b border-cyber-border/30 transition-colors";
+
+        // Thumb Entrada
+        const thumbEntradaHTML = item.entrada?.foto_b64
+          ? `<img src="${item.entrada.foto_b64}" onclick="abrirModalZoom('${item.entrada.foto_b64}', 'Entrada: ${item.colaborador}', '${item.entrada.hora_local}')" class="w-10 h-10 rounded-xl object-cover border border-cyber-emerald cursor-pointer hover:scale-105 transition mx-auto">`
+          : `<span class="text-slate-600 text-[10px]">Sin foto</span>`;
+
+        // Thumb Salida
+        const thumbSalidaHTML = item.salida?.foto_b64
+          ? `<img src="${item.salida.foto_b64}" onclick="abrirModalZoom('${item.salida.foto_b64}', 'Salida: ${item.colaborador}', '${item.salida.hora_local}')" class="w-10 h-10 rounded-xl object-cover border border-cyber-rose cursor-pointer hover:scale-105 transition mx-auto">`
+          : `<span class="text-slate-600 text-[10px]">—</span>`;
+
+        // Badge Dictamen
+        const badgeDictamen = esATiempo
+          ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">A TIEMPO</span>`
+          : `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">${item.entrada?.dictamen || 'RETARDO'}</span>`;
+
+        // Estatus Turno
+        const badgeTurno = enTurno
+          ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">ACTIVO</span>`
+          : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/30">CONCLUIDO</span>`;
+
+        tr.innerHTML = `
+          <td class="p-3.5 pl-5">
+            <div class="font-bold text-white text-xs">${item.colaborador || 'Colaborador'}</div>
+            <div class="text-[10px] text-slate-400">${item.rol || 'General'} • <span class="uppercase">${item.division || 'Nacional'}</span></div>
+          </td>
+          <td class="p-3.5 text-center">${thumbEntradaHTML}</td>
+          <td class="p-3.5 text-white font-bold text-xs">${item.entrada?.hora_local || '--:--'}</td>
+          <td class="p-3.5 text-center">${badgeDictamen}</td>
+          <td class="p-3.5 text-center">${thumbSalidaHTML}</td>
+          <td class="p-3.5 text-slate-300 font-bold text-xs">${item.salida?.hora_local || 'En Turno'}</td>
+          <td class="p-3.5 text-[10px] text-slate-400">
+            <div>IP: <span class="text-slate-200">${item.entrada?.ip_publica || 'N/D'}</span></div>
+            <div>Disp: ${item.entrada?.dispositivo || 'N/D'}</div>
+          </td>
+          <td class="p-3.5 text-center">${badgeTurno}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      actualizarKPIs(tot, aTiempo, retardos, activos);
+    }
+
+    function actualizarKPIs(tot, aTiempo, ret, act) {
+      document.getElementById('kpiTotal').textContent = tot;
+      document.getElementById('kpiATiempo').textContent = aTiempo;
+      document.getElementById('kpiRetardos').textContent = ret;
+      document.getElementById('kpiActivos').textContent = act;
+    }
+
+    window.abrirModalZoom = (src, titulo, hora) => {
+      document.getElementById('imgZoomElemento').src = src;
+      document.getElementById('txtTituloModalFoto').textContent = titulo;
+      document.getElementById('txtDetalleModalFoto').textContent = `Hora capturada: ${hora}`;
+      document.getElementById('modalZoomFoto').classList.remove('hidden');
+    };
+
+    window.cerrarModalZoom = () => {
+      document.getElementById('modalZoomFoto').classList.add('hidden');
+    };
+
+    window.descargarReporteCSV = () => {
+      const uids = Object.keys(datosAsistenciasMemoria);
+      if (uids.length === 0) {
+        alert("No hay registros para exportar en la fecha seleccionada.");
+        return;
+      }
+
+      const encabezados = ["Fecha", "Colaborador", "Rol", "División", "Hora Entrada", "Dictamen", "IP Entrada", "Dispositivo", "Hora Salida", "Dictamen Salida", "Estatus"];
+      
+      const filas = uids.map(uid => {
+        const item = datosAsistenciasMemoria[uid];
+        return [
+          `"${fechaActualSeleccionada}"`,
+          `"${item.colaborador || ''}"`,
+          `"${item.rol || ''}"`,
+          `"${item.division || ''}"`,
+          `"${item.entrada?.hora_local || ''}"`,
+          `"${item.entrada?.dictamen || ''}"`,
+          `"${item.entrada?.ip_publica || ''}"`,
+          `"${item.entrada?.dispositivo || ''}"`,
+          `"${item.salida?.hora_local || ''}"`,
+          `"${item.salida?.dictamen || ''}"`,
+          `"${item.salida ? 'CONCLUIDO' : 'ACTIVO'}"`
+        ];
+      });
+
+      const contenido = [encabezados.join(','), ...filas.map(f => f.join(','))].join('\r\n');
+      const blob = new Blob(["\uFEFF" + contenido], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Asistencia_Puntualidad_${fechaActualSeleccionada}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    };
+  </script>
+</body>
+</html>
