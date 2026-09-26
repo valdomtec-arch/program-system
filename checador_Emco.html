@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checador Emco • Gobernanza y Asistencia Remota</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome 6 Pro CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            cyber: {
+              bg: '#030712',
+              card: '#0b1329',
+              cardAlt: '#111c38',
+              border: 'rgba(30, 58, 138, 0.4)',
+              accent: '#ff6600',
+              accentHover: '#e05500',
+              cyan: '#06b6d4',
+              purple: '#a855f7',
+              emerald: '#10b981',
+              rose: '#ef4444'
+            }
+          },
+          boxShadow: {
+            'glow-accent': '0 0 25px -5px rgba(255, 102, 0, 0.4)',
+            'glow-card': '0 20px 40px -15px rgba(0, 0, 0, 0.8)'
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    .glass-panel {
+      background: radial-gradient(135% 100% at 50% 0%, rgba(17, 28, 56, 0.75) 0%, rgba(11, 19, 41, 0.9) 100%);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .touch-target {
+      min-height: 48px;
+    }
+    /* Efecto espejo para selfie natural */
+    .mirror-mode {
+      transform: scaleX(-1);
+    }
+  </style>
+</head>
+<body class="bg-cyber-bg text-slate-100 font-sans min-h-screen antialiased p-3 sm:p-6 flex flex-col justify-between selection:bg-cyber-accent selection:text-white">
+
+  <!-- ========================================== -->
+  <!-- BARRA SUPERIOR / ESTADO DEL SERVIDOR       -->
+  <!-- ========================================== -->
+  <header class="max-w-xl w-full mx-auto glass-panel border border-cyber-border rounded-2xl p-4 mb-4 shadow-glow-card flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-cyber-accent/15 border border-cyber-accent/40 flex items-center justify-center text-cyber-accent shadow-glow-accent">
+        <i class="fas fa-fingerprint text-lg"></i>
+      </div>
+      <div>
+        <h1 class="font-black text-white text-sm tracking-wider uppercase font-mono">Checador Emco</h1>
+        <span class="text-[10px] text-cyber-cyan font-mono block">Enlace Gobernanza Canónica</span>
+      </div>
+    </div>
+    <div id="statusServidorBadge" class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono font-bold">
+      <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Servidor OK
+    </div>
+  </header>
+
+  <!-- ========================================== -->
+  <!-- ESTADO 1: INICIO DE SESIÓN GOBERNANZA      -->
+  <!-- ========================================== -->
+  <main id="seccionLogin" class="max-w-xl w-full mx-auto glass-panel rounded-3xl border border-cyber-border p-6 shadow-glow-card my-auto space-y-5">
+    <div class="text-center space-y-2">
+      <span class="px-3 py-1 rounded-full text-[11px] font-mono font-bold uppercase bg-cyber-purple/15 text-cyber-purple border border-cyber-purple/30">
+        <i class="fas fa-shield-halved me-1"></i> Protocolo Remoto Seguro
+      </span>
+      <h2 class="text-xl font-black text-white">Acceso de Personal</h2>
+      <p class="text-xs text-slate-400">Ingresa tus credenciales autorizadas del sistema ERP para registrar tu asistencia laboral.</p>
+    </div>
+
+    <form id="formLogin" onsubmit="iniciarSesionStaff(event)" class="space-y-4">
+      <div>
+        <label class="block text-xs font-mono uppercase text-slate-300 mb-1 font-bold">Correo Institucional</label>
+        <div class="relative">
+          <input type="email" id="loginEmail" required placeholder="tu-usuario@dominio.com" class="w-full bg-cyber-bg/90 border border-cyber-border rounded-xl p-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyber-accent font-medium">
+          <i class="fas fa-envelope absolute right-3.5 top-3.5 text-slate-500 text-sm"></i>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-mono uppercase text-slate-300 mb-1 font-bold">Contraseña</label>
+        <div class="relative">
+          <input type="password" id="loginPassword" required placeholder="••••••••" class="w-full bg-cyber-bg/90 border border-cyber-border rounded-xl p-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyber-accent font-medium pr-10">
+          <button type="button" onclick="togglePassLogin()" class="absolute right-3.5 top-3.5 text-slate-400 hover:text-white">
+            <i id="eyeLoginIcon" class="fas fa-eye text-sm"></i>
+          </button>
+        </div>
+      </div>
+
+      <div id="loginErrorMsg" class="hidden p-3 rounded-xl bg-cyber-rose/10 border border-cyber-rose/30 text-rose-400 text-xs font-mono flex items-center gap-2">
+        <i class="fas fa-circle-exclamation text-sm shrink-0"></i>
+        <span id="txtLoginError">Credenciales incorrectas.</span>
+      </div>
+
+      <button type="submit" id="btnLoginSubmit" class="w-full py-3.5 px-4 rounded-xl bg-cyber-accent hover:bg-cyber-accentHover text-slate-950 font-black text-xs uppercase tracking-wider transition-all shadow-glow-accent touch-target flex items-center justify-center gap-2">
+        <i class="fas fa-arrow-right-to-bracket"></i> Validar Cuenta en Gobernanza
+      </button>
+    </form>
+  </main>
+
+  <!-- ========================================== -->
+  <!-- ESTADO 2: PANEL DE CONTROL DE ASISTENCIA   -->
+  <!-- ========================================== -->
+  <main id="seccionChecador" class="max-w-xl w-full mx-auto glass-panel rounded-3xl border border-cyber-border p-6 shadow-glow-card my-auto space-y-6 hidden">
+    
+    <!-- Ficha del Colaborador -->
+    <div class="flex items-center justify-between border-b border-cyber-border pb-4">
+      <div class="space-y-0.5">
+        <span id="lblPerfilRol" class="text-[10px] font-mono uppercase font-bold text-cyber-accent bg-cyber-accent/10 border border-cyber-accent/30 px-2.5 py-0.5 rounded-full">
+          Cargando rol...
+        </span>
+        <h2 id="lblPerfilNombre" class="text-lg font-black text-white tracking-tight">Colaborador</h2>
+        <span id="lblPerfilEmail" class="text-xs text-slate-400 font-mono block">email@dominio.com</span>
+      </div>
+      <button onclick="cerrarSesionStaff()" class="p-2.5 rounded-xl border border-slate-700 bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-mono flex items-center gap-1.5 touch-target" title="Cerrar Sesión">
+        <i class="fas fa-power-off text-cyber-rose"></i>
+      </button>
+    </div>
+
+    <!-- Reloj Digital y Fecha -->
+    <div class="text-center py-4 bg-slate-950/60 rounded-2xl border border-cyber-border space-y-1">
+      <div id="txtRelojDigital" class="text-3xl sm:text-4xl font-black font-mono text-cyber-cyan tracking-wider">00:00:00</div>
+      <div id="txtFechaActual" class="text-xs text-slate-400 font-mono uppercase">Cargando fecha canónica...</div>
+      <div class="pt-2 text-[11px] text-slate-400 font-mono flex items-center justify-center gap-2">
+        <i class="fas fa-network-wired text-cyber-emerald"></i> IP Pública: <strong id="lblIpPublica" class="text-white">Detectando...</strong>
+      </div>
+    </div>
+
+    <!-- Estado Actual de la Jornada -->
+    <div id="tarjetaEstadoJornada" class="p-4 rounded-2xl border border-cyber-border bg-slate-900/50 space-y-3">
+      <div class="flex justify-between items-center text-xs font-mono">
+        <span class="text-slate-400 uppercase font-bold">Estatus del día:</span>
+        <span id="badgeJornadaEstatus" class="px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 font-bold">Sin Registro</span>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 pt-2 border-t border-cyber-border/40 text-xs font-mono">
+        <div class="space-y-1">
+          <span class="text-slate-400 block text-[11px]">Entrada:</span>
+          <span id="txtHoraEntradaRegistrada" class="text-white font-bold text-sm">--:--:--</span>
+          <div id="thumbEntradaContainer" class="hidden pt-1">
+            <img id="imgThumbEntrada" class="w-14 h-14 rounded-lg object-cover border border-cyber-accent">
+          </div>
+        </div>
+        <div class="space-y-1">
+          <span class="text-slate-400 block text-[11px]">Salida:</span>
+          <span id="txtHoraSalidaRegistrada" class="text-white font-bold text-sm">--:--:--</span>
+          <div id="thumbSalidaContainer" class="hidden pt-1">
+            <img id="imgThumbSalida" class="w-14 h-14 rounded-lg object-cover border border-cyber-rose">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botonera de Acción -->
+    <div class="space-y-3 pt-2">
+      <button id="btnChecarEntrada" onclick="abrirCamaraModal('ENTRADA')" class="w-full py-4 px-4 rounded-2xl bg-cyber-emerald hover:bg-emerald-600 text-slate-950 font-black text-sm uppercase tracking-wider transition-all shadow-md touch-target flex items-center justify-center gap-2">
+        <i class="fas fa-camera text-base"></i> Registrar Entrada (Selfie)
+      </button>
+
+      <button id="btnChecarSalida" onclick="abrirCamaraModal('SALIDA')" class="w-full py-4 px-4 rounded-2xl bg-cyber-rose hover:bg-rose-600 text-white font-black text-sm uppercase tracking-wider transition-all shadow-md touch-target flex items-center justify-center gap-2 hidden">
+        <i class="fas fa-arrow-right-from-bracket text-base"></i> Finalizar Jornada (Selfie)
+      </button>
+    </div>
+  </main>
+
+  <!-- ========================================== -->
+  <!-- MODAL RESPONSIVE: CAPTURA FOTOGRÁFICA      -->
+  <!-- ========================================== -->
+  <div id="modalCapturaCamara" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="glass-panel border border-cyber-accent rounded-3xl max-w-sm w-full p-4 sm:p-5 shadow-2xl space-y-4 text-center">
+      
+      <div class="flex justify-between items-center border-b border-cyber-border pb-2">
+        <h3 id="modalCamaraTitulo" class="text-xs font-black uppercase text-cyber-accent font-mono flex items-center gap-1.5">
+          <i class="fas fa-camera"></i> Validación de Asistencia
+        </h3>
+        <button onclick="cerrarCamaraModal()" class="text-slate-400 hover:text-white text-base font-bold p-1">✕</button>
+      </div>
+
+      <p class="text-[11px] text-slate-300">
+        Enfoca tu rostro con la cámara frontal para comprobar el inicio de tu turno remoto.
+      </p>
+
+      <!-- Visor de Video en vivo -->
+      <div class="relative w-full aspect-square max-w-[280px] mx-auto rounded-2xl overflow-hidden border-2 border-cyber-accent shadow-inner bg-black flex items-center justify-center">
+        <video id="videoPreview" autoplay playsinline muted class="w-full h-full object-cover mirror-mode"></video>
+        <canvas id="canvasFoto" class="hidden"></canvas>
+        <div id="loaderCamara" class="absolute inset-0 bg-slate-950/80 flex flex-col items-center justify-center text-xs font-mono text-cyber-accent gap-2">
+          <i class="fas fa-circle-notch fa-spin text-xl"></i>
+          <span>Iniciando sensor frontal...</span>
+        </div>
+      </div>
+
+      <div class="pt-2 flex gap-2">
+        <button type="button" onclick="cerrarCamaraModal()" class="w-1/2 py-2.5 rounded-xl border border-slate-700 text-slate-300 font-mono text-xs font-bold">
+          Cancelar
+        </button>
+        <button type="button" id="btnDispararFoto" onclick="capturarYEnviarAsistencia()" class="w-1/2 py-2.5 rounded-xl bg-cyber-accent hover:bg-cyber-accentHover text-slate-950 font-black font-mono text-xs uppercase shadow-glow-accent flex items-center justify-center gap-1.5">
+          <i class="fas fa-circle-dot"></i> Checar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="max-w-xl w-full mx-auto text-center py-4 text-[11px] font-mono text-slate-500">
+    Checador Remoto Emco • Gobernanza Multi-Plataforma
+  </footer>
+
+  <!-- ========================================== -->
+  <!-- SCRIPT MOTOR VINCULADO AL FIREBASE DEL ERP -->
+  <!-- ========================================== -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { 
+      getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { 
+      getDatabase, ref, get, set, update, serverTimestamp, onValue 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    // Configuración canónica canjeada exactamente de tu sistema ERP (m5_staff)
+    const firebaseConfig = {
+      apiKey: "AIzaSyDxgP1YnycCEqkQ2vr3SPkwc9QMhtG8Zqw",
+      authDomain: "bolsa-de-trabajo-a52e4.firebaseapp.com",
+      databaseURL: "https://bolsa-de-trabajo-a52e4-default-rtdb.firebaseio.com",
+      projectId: "bolsa-de-trabajo-a52e4",
+      storageBucket: "bolsa-de-trabajo-a52e4.firebasestorage.app",
+      messagingSenderId: "592492733212",
+      appId: "1:592492733212:web:88e8ec243bd53608b6d0d9",
+      measurementId: "G-DH2LD3BJEF"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    let usuarioActual = null;
+    let streamCamara = null;
+    let accionActual = 'ENTRADA'; // 'ENTRADA' | 'SALIDA'
+    let ipDetectada = 'Desconocida';
+
+    // Iniciar reloj digital y captura de IP
+    setInterval(actualizarRelojDigital, 1000);
+    actualizarRelojDigital();
+    detectarIpPublica();
+
+    // 1. Escucha reactiva del estado de autenticación
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        mostrarVistaLogin();
+        return;
+      }
+
+      try {
+        // Validación con el nodo de Gobernanza Staff de tu base de datos
+        const snapUser = await get(ref(db, `usuarios_reclutadores/${user.uid}`));
+        
+        if (!snapUser.exists()) {
+          alert("Tu cuenta no está registrada en el padrón de Staff.");
+          await signOut(auth);
+          return;
+        }
+
+        const perfil = snapUser.val();
+
+        if (perfil.estatus !== 'Activo') {
+          alert("Tu cuenta de colaborador se encuentra inactiva o suspendida en Gobernanza.");
+          await signOut(auth);
+          return;
+        }
+
+        usuarioActual = {
+          uid: user.uid,
+          nombre: perfil.nombre || user.email,
+          email: user.email,
+          rol: perfil.nombreRol || "Colaborador",
+          nivel: perfil.nivel || 2,
+          division: perfil.division || "Nacional"
+        };
+
+        mostrarVistaChecador();
+        escucharAsistenciaHoy();
+
+      } catch (err) {
+        console.error("Error al validar sesión en Gobernanza:", err);
+        alert("Fallo de conexión al verificar perfil en el servidor.");
+      }
+    });
+
+    // 2. Login de Staff
+    window.iniciarSesionStaff = async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim();
+      const pass = document.getElementById('loginPassword').value.trim();
+      const boxError = document.getElementById('loginErrorMsg');
+      const btn = document.getElementById('btnLoginSubmit');
+
+      boxError.classList.add('hidden');
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Validando...`;
+
+      try {
+        await signInWithEmailAndPassword(auth, email, pass);
+      } catch (err) {
+        boxError.classList.remove('hidden');
+        document.getElementById('txtLoginError').textContent = "Correo o contraseña no válidos.";
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fas fa-arrow-right-to-bracket"></i> Validar Cuenta en Gobernanza`;
+      }
+    };
+
+    window.cerrarSesionStaff = async () => {
+      if (confirm("¿Deseas cerrar tu sesión del checador?")) {
+        await signOut(auth);
+      }
+    };
+
+    function mostrarVistaLogin() {
+      document.getElementById('seccionLogin').classList.remove('hidden');
+      document.getElementById('seccionChecador').classList.add('hidden');
+      usuarioActual = null;
+    }
+
+    function mostrarVistaChecador() {
+      document.getElementById('seccionLogin').classList.add('hidden');
+      document.getElementById('seccionChecador').classList.remove('hidden');
+
+      document.getElementById('lblPerfilNombre').textContent = usuarioActual.nombre;
+      document.getElementById('lblPerfilEmail').textContent = usuarioActual.email;
+      document.getElementById('lblPerfilRol').textContent = `${usuarioActual.rol} (N${usuarioActual.nivel})`;
+    }
+
+    // 3. Clave de fecha canónica (YYYY-MM-DD)
+    function obtenerFechaClave() {
+      const hoy = new Date();
+      const yyyy = hoy.getFullYear();
+      const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+      const dd = String(hoy.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
+    // 4. Escuchar el nodo de asistencia del día
+    function escucharAsistenciaHoy() {
+      const fechaClave = obtenerFechaClave();
+      const path = `asistencias_remotas/${fechaClave}/${usuarioActual.uid}`;
+
+      onValue(ref(db, path), (snap) => {
+        const data = snap.val();
+        actualizarPantallaAsistencia(data);
+      });
+    }
+
+    function actualizarPantallaAsistencia(data) {
+      const badge = document.getElementById('badgeJornadaEstatus');
+      const txtEntrada = document.getElementById('txtHoraEntradaRegistrada');
+      const txtSalida = document.getElementById('txtHoraSalidaRegistrada');
+      const btnEntrada = document.getElementById('btnChecarEntrada');
+      const btnSalida = document.getElementById('btnChecarSalida');
+
+      const imgEntrada = document.getElementById('imgThumbEntrada');
+      const boxEntrada = document.getElementById('thumbEntradaContainer');
+      const imgSalida = document.getElementById('imgThumbSalida');
+      const boxSalida = document.getElementById('thumbSalidaContainer');
+
+      if (!data || !data.entrada) {
+        badge.textContent = "Sin Iniciar";
+        badge.className = "px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 font-bold";
+        txtEntrada.textContent = "--:--:--";
+        txtSalida.textContent = "--:--:--";
+        btnEntrada.classList.remove('hidden');
+        btnSalida.classList.add('hidden');
+        boxEntrada.classList.add('hidden');
+        boxSalida.classList.add('hidden');
+        return;
+      }
+
+      // Si ya hay entrada
+      txtEntrada.textContent = data.entrada.hora_local || "Registrada";
+      if (data.entrada.foto_b64) {
+        imgEntrada.src = data.entrada.foto_b64;
+        boxEntrada.classList.remove('hidden');
+      }
+
+      if (!data.salida) {
+        badge.textContent = "🟢 En Turno Activo";
+        badge.className = "px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold";
+        btnEntrada.classList.add('hidden');
+        btnSalida.classList.remove('hidden');
+        txtSalida.textContent = "--:--:--";
+        boxSalida.classList.add('hidden');
+      } else {
+        badge.textContent = "🔵 Jornada Concluida";
+        badge.className = "px-2.5 py-0.5 rounded-full bg-sky-500/15 text-sky-400 border border-sky-500/30 font-bold";
+        txtSalida.textContent = data.salida.hora_local || "Finalizada";
+        if (data.salida.foto_b64) {
+          imgSalida.src = data.salida.foto_b64;
+          boxSalida.classList.remove('hidden');
+        }
+        btnEntrada.classList.add('hidden');
+        btnSalida.classList.add('hidden');
+      }
+    }
+
+    // 5. Gestión de Cámara Web / Móvil Frontal
+    window.abrirCamaraModal = async (tipo) => {
+      accionActual = tipo;
+      document.getElementById('modalCamaraTitulo').innerHTML = tipo === 'ENTRADA' 
+        ? `<i class="fas fa-camera text-cyber-emerald"></i> Selfie de Inicio de Jornada`
+        : `<i class="fas fa-camera text-cyber-rose"></i> Selfie de Término de Jornada`;
+
+      document.getElementById('modalCapturaCamara').classList.remove('hidden');
+      document.getElementById('loaderCamara').classList.remove('hidden');
+
+      const video = document.getElementById('videoPreview');
+
+      try {
+        // { facingMode: "user" } fuerza la cámara frontal tipo selfie en celulares y tablets
+        streamCamara = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: "user",
+            width: { ideal: 640 },
+            height: { ideal: 640 }
+          },
+          audio: false
+        });
+
+        video.srcObject = streamCamara;
+        video.onloadedmetadata = () => {
+          document.getElementById('loaderCamara').classList.add('hidden');
+        };
+      } catch (err) {
+        console.error("Error al solicitar cámara:", err);
+        alert("Es indispensable conceder permiso a la cámara frontal para comprobar la asistencia.");
+        cerrarCamaraModal();
+      }
+    };
+
+    window.cerrarCamaraModal = () => {
+      if (streamCamara) {
+        streamCamara.getTracks().forEach(track => track.stop());
+        streamCamara = null;
+      }
+      document.getElementById('modalCapturaCamara').classList.add('hidden');
+    };
+
+    // 6. Captura, compresión a 400x400 JPG (~35KB) y guardado canónico
+    window.capturarYEnviarAsistencia = async () => {
+      const btn = document.getElementById('btnDispararFoto');
+      const video = document.getElementById('videoPreview');
+      const canvas = document.getElementById('canvasFoto');
+
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Registrando...`;
+
+      // Redimensión instantánea a 400x400 para ahorrar banda ancha y almacenamiento
+      canvas.width = 400;
+      canvas.height = 400;
+      const ctx = canvas.getContext('2d');
+
+      // Dibujar con efecto espejo para coherencia visual
+      ctx.translate(400, 0);
+      ctx.scale(-1, 1);
+      ctx.drawImage(video, 0, 0, 400, 400);
+
+      // Comprimir a JPEG calidad 60%
+      const fotoBase64 = canvas.toDataURL('image/jpeg', 0.6);
+
+      const fechaClave = obtenerFechaClave();
+      const ahora = new Date();
+      const horaStr = ahora.toLocaleTimeString('es-MX', { hour12: false });
+
+      const payloadTurno = {
+        timestamp: serverTimestamp(),
+        hora_local: horaStr,
+        foto_b64: fotoBase64,
+        ip_publica: ipDetectada,
+        dispositivo: identificarDispositivo()
+      };
+
+      try {
+        const rootRef = ref(db, `asistencias_remotas/${fechaClave}/${usuarioActual.uid}`);
+        
+        if (accionActual === 'ENTRADA') {
+          await update(rootRef, {
+            uid: usuarioActual.uid,
+            colaborador: usuarioActual.nombre,
+            email: usuarioActual.email,
+            rol: usuarioActual.rol,
+            division: usuarioActual.division,
+            entrada: payloadTurno,
+            estatus_jornada: 'ACTIVO'
+          });
+        } else {
+          await update(rootRef, {
+            salida: payloadTurno,
+            estatus_jornada: 'CONCLUIDO'
+          });
+        }
+
+        cerrarCamaraModal();
+        alert(`¡Asistencia de ${accionActual} registrada correctamente!`);
+
+      } catch (err) {
+        console.error("Error al registrar asistencia:", err);
+        alert("Error al escribir el registro en el servidor: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fas fa-circle-dot"></i> Checar`;
+      }
+    };
+
+    // Funciones de apoyo
+    function actualizarRelojDigital() {
+      const ahora = new Date();
+      document.getElementById('txtRelojDigital').textContent = ahora.toLocaleTimeString('es-MX', { hour12: false });
+      
+      const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      document.getElementById('txtFechaActual').textContent = ahora.toLocaleDateString('es-MX', opciones);
+    }
+
+    async function detectarIpPublica() {
+      try {
+        const resp = await fetch('https://api.ipify.org?format=json');
+        const data = await resp.json();
+        ipDetectada = data.ip || 'No detectada';
+        document.getElementById('lblIpPublica').textContent = ipDetectada;
+      } catch (e) {
+        ipDetectada = '127.0.0.1';
+        document.getElementById('lblIpPublica').textContent = 'Red Local';
+      }
+    }
+
+    function identificarDispositivo() {
+      const ua = navigator.userAgent;
+      if (/tablet|ipad/i.test(ua)) return "Tablet";
+      if (/mobile|android|iphone/i.test(ua)) return "Teléfono Móvil";
+      return "Computadora / Laptop";
+    }
+
+    window.togglePassLogin = () => {
+      const input = document.getElementById('loginPassword');
+      const icon = document.getElementById('eyeLoginIcon');
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'fas fa-eye-slash text-cyber-accent';
+      } else {
+        input.type = 'password';
+        icon.className = 'fas fa-eye text-slate-400';
+      }
+    };
+  </script>
+</body>
+</html>
