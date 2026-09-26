@@ -66,8 +66,14 @@
         <span class="text-[10px] text-cyber-cyan font-mono block">Control de Asistencia & Puntualidad</span>
       </div>
     </div>
-    <div id="statusServidorBadge" class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono font-bold">
-      <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Servidor OK
+    <div class="flex items-center gap-2">
+      <!-- BOTÓN EXCLUSIVO PARA MANDOS (NIVEL 4 Y 5) -->
+      <a id="btnIrAuditoriaM1" href="m1_registro_asistencia_puntualidad.html" class="hidden px-2.5 py-1.5 rounded-xl bg-cyber-purple/20 hover:bg-cyber-purple text-purple-300 hover:text-white border border-purple-500/30 font-mono text-[11px] font-bold transition flex items-center gap-1.5">
+        <i class="fas fa-clipboard-user"></i> <span class="hidden sm:inline">Auditoría M1</span>
+      </a>
+      <div id="statusServidorBadge" class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono font-bold">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Servidor OK
+      </div>
     </div>
   </header>
 
@@ -231,7 +237,7 @@
       getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut 
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { 
-      getDatabase, ref, get, set, update, serverTimestamp, onValue 
+      getDatabase, ref, get, update, serverTimestamp, onValue 
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
@@ -287,14 +293,24 @@
           return;
         }
 
+        const nivelNum = parseInt(perfil.nivel) || 2;
+
         usuarioActual = {
           uid: user.uid,
           nombre: perfil.nombre || user.email,
           email: user.email,
           rol: perfil.nombreRol || "Colaborador",
-          nivel: perfil.nivel || 2,
+          nivel: nivelNum,
           division: perfil.division || "Nacional"
         };
+
+        // Mostrar botón de Auditoría si es Nivel 4 o Nivel 5
+        const btnM1 = document.getElementById('btnIrAuditoriaM1');
+        if (usuarioActual.nivel >= 4) {
+          btnM1?.classList.remove('hidden');
+        } else {
+          btnM1?.classList.add('hidden');
+        }
 
         mostrarVistaChecador();
         escucharAsistenciaHoy();
@@ -336,6 +352,7 @@
     function mostrarVistaLogin() {
       document.getElementById('seccionLogin').classList.remove('hidden');
       document.getElementById('seccionChecador').classList.add('hidden');
+      document.getElementById('btnIrAuditoriaM1')?.classList.add('hidden');
       usuarioActual = null;
     }
 
@@ -395,7 +412,6 @@
         return;
       }
 
-      // Marcación de Entrada registrada
       txtEntrada.textContent = data.entrada.hora_local || "Registrada";
       badgeDictamenEntrada.classList.remove('hidden');
       badgeDictamenEntrada.textContent = data.entrada.dictamen || "Registrado";
@@ -411,7 +427,6 @@
         boxEntrada.classList.remove('hidden');
       }
 
-      // Estado del Turno
       if (!data.salida) {
         badge.textContent = "🟢 En Turno Activo";
         badge.className = "px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold";

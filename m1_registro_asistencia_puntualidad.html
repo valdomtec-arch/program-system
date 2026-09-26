@@ -52,15 +52,17 @@
 </head>
 <body class="bg-cyber-bg text-slate-100 font-sans min-h-screen antialiased p-3 sm:p-6 text-sm">
 
-  <!-- CANDADO SEGURIDAD GOBERNANZA -->
+  <!-- CANDADO SEGURIDAD GOBERNANZA RBAC (NIVEL 4 Y 5 REQUERIDO) -->
   <div id="candadoSeguridad" class="flex flex-col items-center justify-center min-h-[70vh] text-center p-6 glass-panel rounded-3xl max-w-lg mx-auto border-cyber-rose/30 mt-10">
     <div class="w-16 h-16 rounded-2xl bg-cyber-rose/10 border border-cyber-rose/30 flex items-center justify-center text-cyber-rose text-2xl mb-4">
-      <i class="fas fa-lock animate-pulse"></i>
+      <i class="fas fa-user-lock animate-pulse"></i>
     </div>
-    <h2 class="text-lg font-black text-white uppercase">Validando Privilegios de Auditoría</h2>
-    <p class="text-xs text-slate-400 mt-2">Iniciando verificación con el Centro de Gobernanza de personal...</p>
-    <a href="checador_Emco.html" class="mt-5 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-cyber-accent text-slate-950 font-bold text-xs uppercase shadow-glow-accent">
-      <i class="fas fa-fingerprint"></i> Ir al Checador
+    <h2 class="text-lg font-black text-white uppercase">Acceso Restringido por Gobernanza</h2>
+    <p id="txtMensajeBloqueo" class="text-xs text-slate-400 mt-2">
+      Este módulo de auditoría es exclusivo para mandos de <strong>Nivel 4 (Supervisión)</strong> y <strong>Nivel 5 (Dirección General)</strong>. Tus credenciales actuales no tienen autorización.
+    </p>
+    <a href="index.html" class="mt-6 inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-cyber-accent hover:bg-cyber-accentHover text-slate-950 font-bold text-xs uppercase shadow-glow-accent transition">
+      <i class="fas fa-arrow-left"></i> Volver al Checador
     </a>
   </div>
 
@@ -76,7 +78,7 @@
         <div>
           <div class="flex items-center gap-2">
             <span class="bg-cyber-accent/10 text-cyber-accent border border-cyber-accent/30 text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded">
-              M1 • Auditoría
+              M1 • Auditoría de Asistencia
             </span>
             <span class="text-xs text-slate-400 font-mono" id="txtUsuarioSesion">Verificando...</span>
           </div>
@@ -87,7 +89,7 @@
       </div>
 
       <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
-        <a href="checador_Emco.html" class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 font-mono text-xs font-bold transition flex items-center gap-1.5 touch-target">
+        <a href="index.html" class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 font-mono text-xs font-bold transition flex items-center gap-1.5 touch-target">
           <i class="fas fa-fingerprint text-cyber-accent"></i> Checador
         </a>
         <button onclick="descargarReporteCSV()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-xs font-bold transition flex items-center gap-1.5 shadow-md touch-target">
@@ -208,13 +210,14 @@
       document.getElementById('inputFechaFiltro').value = fechaActualSeleccionada;
     }
 
+    // APLICACIÓN ESTRICTA DEL MODELO DE GOBERNANZA DE M5_STAFF
     function validarAccesoGobernanza() {
       onAuthStateChanged(auth, async (user) => {
         const candado = document.getElementById('candadoSeguridad');
         const panel = document.getElementById('panelPrincipal');
 
         if (!user) {
-          window.location.href = "checador_Emco.html";
+          window.location.href = "index.html";
           return;
         }
 
@@ -228,16 +231,20 @@
 
           const perfil = snapUser.val();
           if (perfil.estatus !== 'Activo') {
-            alert("Tu cuenta se encuentra inactiva.");
+            alert("Tu cuenta se encuentra inactiva o suspendida.");
             candado.classList.remove('hidden');
             panel.classList.add('hidden');
             return;
           }
 
           const nivel = parseInt(perfil.nivel) || 2;
-          // Permitir acceso a mandos y auditoría (Nivel >= 3)
-          if (nivel < 3) {
-            alert("Acceso exclusivo para Supervisores, Coordinadores y Dirección.");
+
+          // REGLA SOLICITADA: Acceso exclusivo a Nivel 5 y Nivel 4
+          if (nivel < 4) {
+            document.getElementById('txtMensajeBloqueo').innerHTML = `
+              Tu cuenta tiene asignado el <strong>Nivel ${nivel} (${perfil.nombreRol || 'Operativo'})</strong>.<br>
+              Este módulo de auditoría y volcado de asistencia está reservado exclusivamente para los rangos de <strong>Nivel 4 (Supervisión)</strong> y <strong>Nivel 5 (Dirección)</strong>.
+            `;
             candado.classList.remove('hidden');
             panel.classList.add('hidden');
             return;
@@ -246,11 +253,11 @@
           usuarioSesion = {
             uid: user.uid,
             nombre: perfil.nombre || user.email,
-            rol: perfil.nombreRol || "Mando",
+            rol: perfil.nombreRol || (nivel >= 5 ? "Dirección General" : "Supervisor"),
             nivel: nivel
           };
 
-          document.getElementById('txtUsuarioSesion').textContent = `${usuarioSesion.nombre} (${usuarioSesion.rol})`;
+          document.getElementById('txtUsuarioSesion').textContent = `${usuarioSesion.nombre} • ${usuarioSesion.rol} (N${usuarioSesion.nivel})`;
           candado.classList.add('hidden');
           panel.classList.remove('hidden');
 
@@ -310,22 +317,18 @@
         const tr = document.createElement('tr');
         tr.className = "hover:bg-slate-900/40 border-b border-cyber-border/30 transition-colors";
 
-        // Thumb Entrada
         const thumbEntradaHTML = item.entrada?.foto_b64
           ? `<img src="${item.entrada.foto_b64}" onclick="abrirModalZoom('${item.entrada.foto_b64}', 'Entrada: ${item.colaborador}', '${item.entrada.hora_local}')" class="w-10 h-10 rounded-xl object-cover border border-cyber-emerald cursor-pointer hover:scale-105 transition mx-auto">`
           : `<span class="text-slate-600 text-[10px]">Sin foto</span>`;
 
-        // Thumb Salida
         const thumbSalidaHTML = item.salida?.foto_b64
           ? `<img src="${item.salida.foto_b64}" onclick="abrirModalZoom('${item.salida.foto_b64}', 'Salida: ${item.colaborador}', '${item.salida.hora_local}')" class="w-10 h-10 rounded-xl object-cover border border-cyber-rose cursor-pointer hover:scale-105 transition mx-auto">`
           : `<span class="text-slate-600 text-[10px]">—</span>`;
 
-        // Badge Dictamen
         const badgeDictamen = esATiempo
           ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">A TIEMPO</span>`
           : `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">${item.entrada?.dictamen || 'RETARDO'}</span>`;
 
-        // Estatus Turno
         const badgeTurno = enTurno
           ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">ACTIVO</span>`
           : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/30">CONCLUIDO</span>`;
@@ -377,7 +380,7 @@
         return;
       }
 
-      const encabezados = ["Fecha", "Colaborador", "Rol", "División", "Hora Entrada", "Dictamen", "IP Entrada", "Dispositivo", "Hora Salida", "Dictamen Salida", "Estatus"];
+      const encabezados = ["Fecha", "Colaborador", "Rol", "División", "Hora Entrada", "Dictamen Entrada", "IP Entrada", "Dispositivo", "Hora Salida", "Dictamen Salida", "Estatus"];
       
       const filas = uids.map(uid => {
         const item = datosAsistenciasMemoria[uid];
@@ -401,7 +404,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `Asistencia_Puntualidad_${fechaActualSeleccionada}.csv`;
+      a.download = `Reporte_Asistencia_${fechaActualSeleccionada}.csv`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
