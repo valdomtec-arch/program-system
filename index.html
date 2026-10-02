@@ -139,6 +139,19 @@
       </button>
     </div>
 
+    <!-- TARJETA ENROLAMIENTO BIOMÉTRICO (Si el dispositivo no está vinculado) -->
+    <div id="bannerVincularHuella" class="hidden p-4 rounded-2xl bg-cyber-cyan/10 border border-cyber-cyan/30 text-xs space-y-2">
+      <div class="flex items-center gap-2 text-cyber-cyan font-bold font-mono">
+        <i class="fas fa-fingerprint text-base"></i> Configurar Huella Dactilar
+      </div>
+      <p class="text-slate-300 text-[11px] leading-relaxed">
+        Protege tu privacidad: vincula el sensor de huella de este teléfono para checar entrada y salida sin necesidad de tomarte selfies.
+      </p>
+      <button onclick="vincularBiometriaWebAuthn()" id="btnVincularBiometria" class="w-full py-2.5 px-3 rounded-xl bg-cyber-cyan hover:bg-cyan-500 text-slate-950 font-bold font-mono text-xs uppercase flex items-center justify-center gap-2 transition">
+        <i class="fas fa-shield-halved"></i> Vincular Huella de este Teléfono
+      </button>
+    </div>
+
     <!-- Reloj Digital y Metadata -->
     <div class="text-center py-3.5 bg-slate-950/60 rounded-2xl border border-cyber-border space-y-1">
       <div id="txtRelojDigital" class="text-3xl sm:text-4xl font-black font-mono text-cyber-cyan tracking-wider">00:00:00</div>
@@ -156,43 +169,69 @@
       </div>
 
       <div class="grid grid-cols-2 gap-3 pt-2 border-t border-cyber-border/40 text-xs font-mono">
+        <!-- Entrada -->
         <div class="space-y-1">
           <div class="flex justify-between items-center">
             <span class="text-slate-400 text-[11px]">Entrada:</span>
             <span id="badgeDictamenEntrada" class="text-[9px] px-1.5 py-0.5 rounded font-bold uppercase hidden">A Tiempo</span>
           </div>
           <span id="txtHoraEntradaRegistrada" class="text-white font-bold text-sm block">--:--:--</span>
-          <div id="thumbEntradaContainer" class="hidden pt-1">
-            <img id="imgThumbEntrada" class="w-14 h-14 rounded-lg object-cover border border-cyber-accent">
+          
+          <!-- Evidencia Entrada: Foto o Huella -->
+          <div id="evidenciaEntradaContainer" class="hidden pt-1">
+            <div id="boxHuellaEntrada" class="hidden p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] flex items-center gap-1.5 font-bold">
+              <i class="fas fa-fingerprint text-base"></i> Huella Verificada
+            </div>
+            <img id="imgThumbEntrada" class="hidden w-14 h-14 rounded-lg object-cover border border-cyber-accent">
           </div>
         </div>
 
+        <!-- Salida -->
         <div class="space-y-1">
           <div class="flex justify-between items-center">
             <span class="text-slate-400 text-[11px]">Salida:</span>
             <span id="badgeDictamenSalida" class="text-[9px] px-1.5 py-0.5 rounded font-bold uppercase hidden">Completa</span>
           </div>
           <span id="txtHoraSalidaRegistrada" class="text-white font-bold text-sm block">--:--:--</span>
-          <div id="thumbSalidaContainer" class="hidden pt-1">
-            <img id="imgThumbSalida" class="w-14 h-14 rounded-lg object-cover border border-cyber-rose">
+          
+          <!-- Evidencia Salida: Foto o Huella -->
+          <div id="evidenciaSalidaContainer" class="hidden pt-1">
+            <div id="boxHuellaSalida" class="hidden p-2 rounded-xl bg-cyber-cyan/10 border border-cyan-500/30 text-cyan-400 text-[10px] flex items-center gap-1.5 font-bold">
+              <i class="fas fa-fingerprint text-base"></i> Huella Verificada
+            </div>
+            <img id="imgThumbSalida" class="hidden w-14 h-14 rounded-lg object-cover border border-cyber-rose">
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Botones de Acción -->
-    <div class="space-y-3 pt-1">
-      <button id="btnChecarEntrada" onclick="abrirCamaraModal('ENTRADA')" class="w-full py-3.5 px-4 rounded-2xl bg-cyber-emerald hover:bg-emerald-600 text-slate-950 font-black text-sm uppercase tracking-wider transition-all shadow-md touch-target flex items-center justify-center gap-2">
-        <i class="fas fa-camera text-base"></i> Registrar Entrada (Selfie)
-      </button>
+    <!-- BOTONES DE ACCIÓN (HUELLA BIOMÉTRICA COMO MÉTODO PRINCIPAL) -->
+    <div class="space-y-2.5 pt-1">
+      
+      <!-- Entrada -->
+      <div id="grupoAccionEntrada" class="space-y-2">
+        <button id="btnChecarEntradaHuella" onclick="checarConHuella('ENTRADA')" class="w-full py-3.5 px-4 rounded-2xl bg-cyber-emerald hover:bg-emerald-600 text-slate-950 font-black text-sm uppercase tracking-wider transition-all shadow-glow-card touch-target flex items-center justify-center gap-2">
+          <i class="fas fa-fingerprint text-xl"></i> Registrar Entrada con Huella
+        </button>
+        <button type="button" onclick="abrirCamaraModal('ENTRADA')" class="w-full text-center text-xs text-slate-400 hover:text-cyber-cyan transition font-mono flex items-center justify-center gap-1.5">
+          <i class="fas fa-camera text-[10px]"></i> ¿No tienes huella? Checar con selfie
+        </button>
+      </div>
 
-      <button id="btnChecarSalida" onclick="abrirCamaraModal('SALIDA')" class="w-full py-3.5 px-4 rounded-2xl bg-cyber-rose hover:bg-rose-600 text-white font-black text-sm uppercase tracking-wider transition-all shadow-md touch-target flex items-center justify-center gap-2 hidden">
-        <i class="fas fa-arrow-right-from-bracket text-base"></i> Finalizar Turno (Selfie)
-      </button>
+      <!-- Salida -->
+      <div id="grupoAccionSalida" class="space-y-2 hidden">
+        <button id="btnChecarSalidaHuella" onclick="checarConHuella('SALIDA')" class="w-full py-3.5 px-4 rounded-2xl bg-cyber-rose hover:bg-rose-600 text-white font-black text-sm uppercase tracking-wider transition-all shadow-glow-card touch-target flex items-center justify-center gap-2">
+          <i class="fas fa-fingerprint text-xl"></i> Finalizar Turno con Huella
+        </button>
+        <button type="button" onclick="abrirCamaraModal('SALIDA')" class="w-full text-center text-xs text-slate-400 hover:text-cyber-rose transition font-mono flex items-center justify-center gap-1.5">
+          <i class="fas fa-camera text-[10px]"></i> Finalizar turno con selfie
+        </button>
+      </div>
+
     </div>
   </main>
 
-  <!-- MODAL DE CAPTURA RESPONSIVE -->
+  <!-- MODAL DE CAPTURA RESPONSIVE (MÉTODO ALTERNATIVO SELFIE) -->
   <div id="modalCapturaCamara" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 sm:p-4">
     <div class="glass-panel border border-cyber-accent rounded-3xl max-w-sm w-full p-4 sm:p-5 shadow-2xl space-y-4 text-center">
       <div class="flex justify-between items-center border-b border-cyber-border pb-2">
@@ -206,8 +245,8 @@
         Enfoca tu rostro con la cámara frontal para corroborar tu identidad en este registro.
       </p>
 
-      <div class="relative w-full aspect-square max-w-[280px] mx-auto rounded-2xl overflow-hidden border-2 border-cyber-accent shadow-inner bg-black flex items-center justify-center">
-        <video id="videoPreview" autoplay playsinline muted class="w-full h-full object-cover mirror-mode"></video>
+      <div class="relative w-full aspect-square max-w-[280px] mx-auto rounded-2xl border-2 border-cyber-accent shadow-inner bg-black flex items-center justify-center">
+        <video id="videoPreview" autoplay playsinline muted class="w-full h-full object-cover mirror-mode rounded-xl"></video>
         <canvas id="canvasFoto" class="hidden"></canvas>
         <div id="loaderCamara" class="absolute inset-0 bg-slate-950/80 flex flex-col items-center justify-center text-xs font-mono text-cyber-accent gap-2">
           <i class="fas fa-circle-notch fa-spin text-xl"></i>
@@ -230,7 +269,7 @@
     Checador Emco • Gobernanza y Asistencia
   </footer>
 
-  <!-- MOTOR VINCULADO AL NODO 'registro_asistencia_puntualidad' -->
+  <!-- MOTOR VINCULADO AL NODO 'registro_asistencia_puntualidad' CON WEBAUTHN -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { 
@@ -264,6 +303,7 @@
     let streamCamara = null;
     let accionActual = 'ENTRADA';
     let ipDetectada = 'Desconocida';
+    let credencialBiometricaRegistrada = null;
 
     setInterval(actualizarRelojDigital, 1000);
     actualizarRelojDigital();
@@ -294,6 +334,7 @@
         }
 
         const nivelNum = parseInt(perfil.nivel) || 2;
+        credencialBiometricaRegistrada = perfil.credencial_biometrica || null;
 
         usuarioActual = {
           uid: user.uid,
@@ -301,8 +342,17 @@
           email: user.email,
           rol: perfil.nombreRol || "Colaborador",
           nivel: nivelNum,
-          division: perfil.division || "Nacional"
+          division: perfil.division || "Nacional",
+          credencial: credencialBiometricaRegistrada
         };
+
+        // Mostrar u ocultar banner de vinculación de huella
+        const bannerHuella = document.getElementById('bannerVincularHuella');
+        if (!credencialBiometricaRegistrada && window.PublicKeyCredential) {
+          bannerHuella.classList.remove('hidden');
+        } else {
+          bannerHuella.classList.add('hidden');
+        }
 
         // Mostrar botón de Auditoría si es Nivel 4 o Nivel 5
         const btnM1 = document.getElementById('btnIrAuditoriaM1');
@@ -387,16 +437,20 @@
       const badge = document.getElementById('badgeJornadaEstatus');
       const txtEntrada = document.getElementById('txtHoraEntradaRegistrada');
       const txtSalida = document.getElementById('txtHoraSalidaRegistrada');
-      const btnEntrada = document.getElementById('btnChecarEntrada');
-      const btnSalida = document.getElementById('btnChecarSalida');
+      
+      const grupoEntrada = document.getElementById('grupoAccionEntrada');
+      const grupoSalida = document.getElementById('grupoAccionSalida');
 
       const badgeDictamenEntrada = document.getElementById('badgeDictamenEntrada');
       const badgeDictamenSalida = document.getElementById('badgeDictamenSalida');
 
+      const contEntrada = document.getElementById('evidenciaEntradaContainer');
+      const boxHuellaEntrada = document.getElementById('boxHuellaEntrada');
       const imgEntrada = document.getElementById('imgThumbEntrada');
-      const boxEntrada = document.getElementById('thumbEntradaContainer');
+
+      const contSalida = document.getElementById('evidenciaSalidaContainer');
+      const boxHuellaSalida = document.getElementById('boxHuellaSalida');
       const imgSalida = document.getElementById('imgThumbSalida');
-      const boxSalida = document.getElementById('thumbSalidaContainer');
 
       if (!data || !data.entrada) {
         badge.textContent = "Sin Iniciar";
@@ -405,36 +459,41 @@
         txtSalida.textContent = "--:--:--";
         badgeDictamenEntrada.classList.add('hidden');
         badgeDictamenSalida.classList.add('hidden');
-        btnEntrada.classList.remove('hidden');
-        btnSalida.classList.add('hidden');
-        boxEntrada.classList.add('hidden');
-        boxSalida.classList.add('hidden');
+        
+        grupoEntrada.classList.remove('hidden');
+        grupoSalida.classList.add('hidden');
+        contEntrada.classList.add('hidden');
+        contSalida.classList.add('hidden');
         return;
       }
 
+      // Entrada registrada
       txtEntrada.textContent = data.entrada.hora_local || "Registrada";
       badgeDictamenEntrada.classList.remove('hidden');
       badgeDictamenEntrada.textContent = data.entrada.dictamen || "Registrado";
       
-      if (data.entrada.dictamen === "A TIEMPO") {
-        badgeDictamenEntrada.className = "text-[9px] px-1.5 py-0.5 rounded font-bold uppercase bg-emerald-500/15 text-emerald-400 border border-emerald-500/30";
-      } else {
-        badgeDictamenEntrada.className = "text-[9px] px-1.5 py-0.5 rounded font-bold uppercase bg-amber-500/15 text-amber-400 border border-amber-500/30";
-      }
+      badgeDictamenEntrada.className = data.entrada.dictamen === "A TIEMPO"
+        ? "text-[9px] px-1.5 py-0.5 rounded font-bold uppercase bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+        : "text-[9px] px-1.5 py-0.5 rounded font-bold uppercase bg-amber-500/15 text-amber-400 border border-amber-500/30";
 
-      if (data.entrada.foto_b64) {
+      contEntrada.classList.remove('hidden');
+      if (data.entrada.metodo === 'HUELLA_WEBAUTHN') {
+        boxHuellaEntrada.classList.remove('hidden');
+        imgEntrada.classList.add('hidden');
+      } else if (data.entrada.foto_b64) {
         imgEntrada.src = data.entrada.foto_b64;
-        boxEntrada.classList.remove('hidden');
+        imgEntrada.classList.remove('hidden');
+        boxHuellaEntrada.classList.add('hidden');
       }
 
       if (!data.salida) {
         badge.textContent = "🟢 En Turno Activo";
         badge.className = "px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold";
-        btnEntrada.classList.add('hidden');
-        btnSalida.classList.remove('hidden');
+        grupoEntrada.classList.add('hidden');
+        grupoSalida.classList.remove('hidden');
         txtSalida.textContent = "--:--:--";
         badgeDictamenSalida.classList.add('hidden');
-        boxSalida.classList.add('hidden');
+        contSalida.classList.add('hidden');
       } else {
         badge.textContent = "🔵 Turno Concluido";
         badge.className = "px-2.5 py-0.5 rounded-full bg-sky-500/15 text-sky-400 border border-sky-500/30 font-bold";
@@ -446,12 +505,18 @@
           ? "text-[9px] px-1.5 py-0.5 rounded font-bold uppercase bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
           : "text-[9px] px-1.5 py-0.5 rounded font-bold uppercase bg-rose-500/15 text-rose-400 border border-rose-500/30";
 
-        if (data.salida.foto_b64) {
+        contSalida.classList.remove('hidden');
+        if (data.salida.metodo === 'HUELLA_WEBAUTHN') {
+          boxHuellaSalida.classList.remove('hidden');
+          imgSalida.classList.add('hidden');
+        } else if (data.salida.foto_b64) {
           imgSalida.src = data.salida.foto_b64;
-          boxSalida.classList.remove('hidden');
+          imgSalida.classList.remove('hidden');
+          boxHuellaSalida.classList.add('hidden');
         }
-        btnEntrada.classList.add('hidden');
-        btnSalida.classList.add('hidden');
+
+        grupoEntrada.classList.add('hidden');
+        grupoSalida.classList.add('hidden');
       }
     }
 
@@ -481,7 +546,155 @@
       return (minReg >= minEsp) ? "JORNADA CUMPLIDA" : "SALIDA ANTICIPADA";
     }
 
-    // 5. Cámara frontal y compresión
+    // ==========================================
+    // 5. MOTOR WEBAUTHN (BIOMETRÍA LOCAL / HUELLA)
+    // ==========================================
+
+    function arrayBufferToBase64(buffer) {
+      let binary = '';
+      const bytes = new Uint8Array(buffer);
+      for (let i = 0; i < bytes.byteLength; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      return window.btoa(binary);
+    }
+
+    function base64ToArrayBuffer(base64) {
+      const binaryString = window.atob(base64);
+      const len = binaryString.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      return bytes.buffer;
+    }
+
+    // Enrolar el sensor biométrico del teléfono
+    window.vincularBiometriaWebAuthn = async () => {
+      if (!window.PublicKeyCredential) {
+        alert("Tu dispositivo o navegador no soporta autenticación biométrica WebAuthn.");
+        return;
+      }
+
+      const btn = document.getElementById('btnVincularBiometria');
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Coloca tu huella...`;
+
+      try {
+        const challenge = new Uint8Array(32);
+        window.crypto.getRandomValues(challenge);
+
+        const userIdBytes = new TextEncoder().encode(usuarioActual.uid);
+
+        const publicKeyCredentialCreationOptions = {
+          challenge: challenge,
+          rp: {
+            name: "Checador Emco Staff",
+            id: window.location.hostname
+          },
+          user: {
+            id: userIdBytes,
+            name: usuarioActual.email,
+            displayName: usuarioActual.nombre
+          },
+          pubKeyCredParams: [{ alg: -7, type: "public-key" }],
+          authenticatorSelection: {
+            authenticatorAttachment: "platform", // Sensor local del teléfono/laptop
+            userVerification: "required"
+          },
+          timeout: 60000,
+          attestation: "none"
+        };
+
+        const credential = await navigator.credentials.create({
+          publicKey: publicKeyCredentialCreationOptions
+        });
+
+        const rawIdBase64 = arrayBufferToBase64(credential.rawId);
+
+        // Guardar credencial en el perfil del usuario
+        await update(ref(db, `usuarios_reclutadores/${usuarioActual.uid}`), {
+          credencial_biometrica: {
+            id: rawIdBase64,
+            fecha_registro: new Date().toISOString(),
+            dispositivo: identificarDispositivo()
+          }
+        });
+
+        credencialBiometricaRegistrada = { id: rawIdBase64 };
+        usuarioActual.credencial = credencialBiometricaRegistrada;
+        document.getElementById('bannerVincularHuella').classList.add('hidden');
+
+        alert("¡Huella dactilar vinculada con éxito a este dispositivo! Ya puedes checar sin selfies.");
+
+      } catch (err) {
+        console.error("Error al enrolar huella:", err);
+        alert("No se pudo completar el registro biométrico: " + (err.message || "Operación cancelada"));
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fas fa-shield-halved"></i> Vincular Huella de este Teléfono`;
+      }
+    };
+
+    // Checar Entrada / Salida mediante el sensor de huella
+    window.checarConHuella = async (tipo) => {
+      if (!window.PublicKeyCredential) {
+        alert("Tu navegador no soporta autenticación biométrica. Utiliza el registro por foto.");
+        return;
+      }
+
+      if (!credencialBiometricaRegistrada) {
+        const enrolar = confirm("Aún no tienes registrada la huella de este teléfono. ¿Deseas configurarla ahora?");
+        if (enrolar) {
+          await vincularBiometriaWebAuthn();
+        }
+        return;
+      }
+
+      const btnId = tipo === 'ENTRADA' ? 'btnChecarEntradaHuella' : 'btnChecarSalidaHuella';
+      const btn = document.getElementById(btnId);
+      const originalHTML = btn.innerHTML;
+
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Coloca tu huella...`;
+
+      try {
+        const challenge = new Uint8Array(32);
+        window.crypto.getRandomValues(challenge);
+
+        const allowCredentials = [{
+          id: base64ToArrayBuffer(credencialBiometricaRegistrada.id),
+          type: 'public-key'
+        }];
+
+        const publicKeyCredentialRequestOptions = {
+          challenge: challenge,
+          allowCredentials: allowCredentials,
+          timeout: 60000,
+          userVerification: "required"
+        };
+
+        const assertion = await navigator.credentials.get({
+          publicKey: publicKeyCredentialRequestOptions
+        });
+
+        if (assertion) {
+          await registrarAsistenciaEnServidor({
+            metodo: 'HUELLA_WEBAUTHN',
+            biometria_validada: true,
+            tipo: tipo
+          });
+        }
+      } catch (err) {
+        console.error("Error de huella:", err);
+        alert("Autenticación biométrica no completada: " + (err.message || "Cancelado por el usuario"));
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHTML;
+      }
+    };
+
+    // 6. Cámara frontal y compresión (Método alternativo)
     window.abrirCamaraModal = async (tipo) => {
       accionActual = tipo;
       document.getElementById('modalCamaraTitulo').innerHTML = tipo === 'ENTRADA' 
@@ -504,7 +717,7 @@
           document.getElementById('loaderCamara').classList.add('hidden');
         };
       } catch (err) {
-        alert("Es necesario dar permiso a la cámara frontal para registrar asistencia.");
+        alert("Es necesario dar permiso a la cámara frontal para esta opción.");
         cerrarCamaraModal();
       }
     };
@@ -533,6 +746,20 @@
       ctx.drawImage(video, 0, 0, 400, 400);
 
       const fotoBase64 = canvas.toDataURL('image/jpeg', 0.6);
+
+      await registrarAsistenciaEnServidor({
+        metodo: 'SELFIE',
+        foto_b64: fotoBase64,
+        tipo: accionActual
+      });
+
+      cerrarCamaraModal();
+      btn.disabled = false;
+      btn.innerHTML = `<i class="fas fa-circle-dot"></i> Checar`;
+    };
+
+    // 7. Persistencia Unificada en Firebase Realtime Database
+    async function registrarAsistenciaEnServidor(datosRegistro) {
       const fechaClave = obtenerFechaClave();
       const ahora = new Date();
       const horaStr = ahora.toLocaleTimeString('es-MX', { hour12: false });
@@ -540,7 +767,9 @@
       const payloadTurno = {
         timestamp: serverTimestamp(),
         hora_local: horaStr,
-        foto_b64: fotoBase64,
+        metodo: datosRegistro.metodo,
+        biometria_validada: datosRegistro.metodo === 'HUELLA_WEBAUTHN',
+        foto_b64: datosRegistro.foto_b64 || null,
         ip_publica: ipDetectada,
         dispositivo: identificarDispositivo()
       };
@@ -548,7 +777,7 @@
       try {
         const nodoRef = ref(db, `registro_asistencia_puntualidad/${fechaClave}/${usuarioActual.uid}`);
         
-        if (accionActual === 'ENTRADA') {
+        if (datosRegistro.tipo === 'ENTRADA') {
           const dictamen = evaluarDictamenEntrada(horaStr);
           await update(nodoRef, {
             uid: usuarioActual.uid,
@@ -578,16 +807,12 @@
           });
         }
 
-        cerrarCamaraModal();
-        alert(`¡Asistencia de ${accionActual} registrada exitosamente!`);
+        alert(`¡Asistencia de ${datosRegistro.tipo} registrada con éxito mediante ${datosRegistro.metodo === 'HUELLA_WEBAUTHN' ? 'Huella Biométrica' : 'Selfie'}!`);
 
       } catch (err) {
         alert("Error al escribir registro en el servidor: " + err.message);
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = `<i class="fas fa-circle-dot"></i> Checar`;
       }
-    };
+    }
 
     function actualizarRelojDigital() {
       const ahora = new Date();

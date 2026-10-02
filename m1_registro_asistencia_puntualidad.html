@@ -141,10 +141,10 @@
           <thead>
             <tr class="bg-slate-950/80 border-b border-cyber-border text-slate-300 font-mono uppercase font-bold">
               <th class="p-3.5 pl-5">Colaborador / Rol</th>
-              <th class="p-3.5 text-center">Selfie Entrada</th>
+              <th class="p-3.5 text-center">Evidencia Entrada</th>
               <th class="p-3.5">Hora Entrada</th>
               <th class="p-3.5 text-center">Dictamen Entrada</th>
-              <th class="p-3.5 text-center">Selfie Salida</th>
+              <th class="p-3.5 text-center">Evidencia Salida</th>
               <th class="p-3.5">Hora Salida</th>
               <th class="p-3.5">Auditoría IP / Equipo</th>
               <th class="p-3.5 text-center">Estatus</th>
@@ -210,7 +210,7 @@
       document.getElementById('inputFechaFiltro').value = fechaActualSeleccionada;
     }
 
-    // APLICACIÓN ESTRICTA DEL MODELO DE GOBERNANZA DE M5_STAFF
+    // APLICACIÓN ESTRICTA DEL MODELO DE GOBERNANZA RBAC (NIVEL 4 Y 5)
     function validarAccesoGobernanza() {
       onAuthStateChanged(auth, async (user) => {
         const candado = document.getElementById('candadoSeguridad');
@@ -239,7 +239,6 @@
 
           const nivel = parseInt(perfil.nivel) || 2;
 
-          // REGLA SOLICITADA: Acceso exclusivo a Nivel 5 y Nivel 4
           if (nivel < 4) {
             document.getElementById('txtMensajeBloqueo').innerHTML = `
               Tu cuenta tiene asignado el <strong>Nivel ${nivel} (${perfil.nombreRol || 'Operativo'})</strong>.<br>
@@ -290,6 +289,32 @@
       escucharAsistenciasEnVivo();
     };
 
+    // Renderizar evidencia (Distingue Huella vs Selfie)
+    function generarBadgeEvidencia(evento, colaborador) {
+      if (!evento) {
+        return `<span class="text-slate-600 text-[10px] font-mono">—</span>`;
+      }
+
+      if (evento.metodo === 'HUELLA_WEBAUTHN') {
+        return `
+          <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono text-[10px] font-bold" title="Autenticación con Huella Biométrica FIDO2">
+            <i class="fas fa-fingerprint text-xs"></i> <span>Huella</span>
+          </div>
+        `;
+      }
+
+      if (evento.foto_b64) {
+        return `
+          <img src="${evento.foto_b64}" 
+               onclick="abrirModalZoom('${evento.foto_b64}', '${colaborador}', '${evento.hora_local || ''}')" 
+               class="w-10 h-10 rounded-xl object-cover border border-cyber-accent cursor-pointer hover:scale-105 transition mx-auto" 
+               title="Ver selfie">
+        `;
+      }
+
+      return `<span class="text-slate-500 text-[10px]">Sin evidencia</span>`;
+    }
+
     function renderizarTabla() {
       const tbody = document.getElementById('tablaAsistenciasBody');
       tbody.innerHTML = '';
@@ -317,13 +342,8 @@
         const tr = document.createElement('tr');
         tr.className = "hover:bg-slate-900/40 border-b border-cyber-border/30 transition-colors";
 
-        const thumbEntradaHTML = item.entrada?.foto_b64
-          ? `<img src="${item.entrada.foto_b64}" onclick="abrirModalZoom('${item.entrada.foto_b64}', 'Entrada: ${item.colaborador}', '${item.entrada.hora_local}')" class="w-10 h-10 rounded-xl object-cover border border-cyber-emerald cursor-pointer hover:scale-105 transition mx-auto">`
-          : `<span class="text-slate-600 text-[10px]">Sin foto</span>`;
-
-        const thumbSalidaHTML = item.salida?.foto_b64
-          ? `<img src="${item.salida.foto_b64}" onclick="abrirModalZoom('${item.salida.foto_b64}', 'Salida: ${item.colaborador}', '${item.salida.hora_local}')" class="w-10 h-10 rounded-xl object-cover border border-cyber-rose cursor-pointer hover:scale-105 transition mx-auto">`
-          : `<span class="text-slate-600 text-[10px]">—</span>`;
+        const evidenciaEntradaHTML = generarBadgeEvidencia(item.entrada, item.colaborador || 'Colaborador');
+        const evidenciaSalidaHTML = generarBadgeEvidencia(item.salida, item.colaborador || 'Colaborador');
 
         const badgeDictamen = esATiempo
           ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">A TIEMPO</span>`
@@ -338,10 +358,10 @@
             <div class="font-bold text-white text-xs">${item.colaborador || 'Colaborador'}</div>
             <div class="text-[10px] text-slate-400">${item.rol || 'General'} • <span class="uppercase">${item.division || 'Nacional'}</span></div>
           </td>
-          <td class="p-3.5 text-center">${thumbEntradaHTML}</td>
+          <td class="p-3.5 text-center">${evidenciaEntradaHTML}</td>
           <td class="p-3.5 text-white font-bold text-xs">${item.entrada?.hora_local || '--:--'}</td>
           <td class="p-3.5 text-center">${badgeDictamen}</td>
-          <td class="p-3.5 text-center">${thumbSalidaHTML}</td>
+          <td class="p-3.5 text-center">${evidenciaSalidaHTML}</td>
           <td class="p-3.5 text-slate-300 font-bold text-xs">${item.salida?.hora_local || 'En Turno'}</td>
           <td class="p-3.5 text-[10px] text-slate-400">
             <div>IP: <span class="text-slate-200">${item.entrada?.ip_publica || 'N/D'}</span></div>
@@ -373,6 +393,7 @@
       document.getElementById('modalZoomFoto').classList.add('hidden');
     };
 
+    // EXPORTACIÓN A CSV CON IDENTIFICACIÓN DE MÉTODO (HUELLA / SELFIE)
     window.descargarReporteCSV = () => {
       const uids = Object.keys(datosAsistenciasMemoria);
       if (uids.length === 0) {
@@ -380,19 +401,38 @@
         return;
       }
 
-      const encabezados = ["Fecha", "Colaborador", "Rol", "División", "Hora Entrada", "Dictamen Entrada", "IP Entrada", "Dispositivo", "Hora Salida", "Dictamen Salida", "Estatus"];
+      const encabezados = [
+        "Fecha", 
+        "Colaborador", 
+        "Rol", 
+        "División", 
+        "Método Entrada",
+        "Hora Entrada", 
+        "Dictamen Entrada", 
+        "IP Entrada", 
+        "Dispositivo", 
+        "Método Salida",
+        "Hora Salida", 
+        "Dictamen Salida", 
+        "Estatus"
+      ];
       
       const filas = uids.map(uid => {
         const item = datosAsistenciasMemoria[uid];
+        const metEntrada = item.entrada?.metodo === 'HUELLA_WEBAUTHN' ? 'Huella Móvil' : (item.entrada?.foto_b64 ? 'Selfie' : 'N/D');
+        const metSalida = item.salida?.metodo === 'HUELLA_WEBAUTHN' ? 'Huella Móvil' : (item.salida?.foto_b64 ? 'Selfie' : 'N/D');
+
         return [
           `"${fechaActualSeleccionada}"`,
           `"${item.colaborador || ''}"`,
           `"${item.rol || ''}"`,
           `"${item.division || ''}"`,
+          `"${metEntrada}"`,
           `"${item.entrada?.hora_local || ''}"`,
           `"${item.entrada?.dictamen || ''}"`,
           `"${item.entrada?.ip_publica || ''}"`,
           `"${item.entrada?.dispositivo || ''}"`,
+          `"${metSalida}"`,
           `"${item.salida?.hora_local || ''}"`,
           `"${item.salida?.dictamen || ''}"`,
           `"${item.salida ? 'CONCLUIDO' : 'ACTIVO'}"`
