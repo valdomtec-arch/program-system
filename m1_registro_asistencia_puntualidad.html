@@ -109,7 +109,7 @@
         <div>
           <div class="flex items-center gap-2">
             <span class="bg-cyber-accent/10 text-cyber-accent border border-cyber-accent/30 text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded">
-              M1 • Auditoría de Asistencia
+              M1 • Auditoría de Asistencia & Jornadas
             </span>
             <span class="text-xs text-slate-400 font-mono" id="txtUsuarioSesion">Verificando...</span>
           </div>
@@ -124,7 +124,7 @@
           <i class="fas fa-fingerprint text-cyber-accent"></i> Checador
         </a>
         <button onclick="descargarReporteCSV()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-xs font-bold transition flex items-center gap-1.5 shadow-md touch-target">
-          <i class="fas fa-file-excel"></i> Exportar CSV
+          <i class="fas fa-file-excel"></i> Exportar CSV Prenómina
         </button>
       </div>
     </header>
@@ -136,12 +136,15 @@
         <span id="kpiTotal" class="text-2xl font-black text-white">0</span>
       </div>
       <div class="glass-panel p-4 rounded-2xl border border-emerald-500/30">
-        <span class="text-[11px] text-emerald-400 block uppercase">A Tiempo (≤ 09:15)</span>
+        <span class="text-[11px] text-emerald-400 block uppercase">A Tiempo (06:00 - 09:15)</span>
         <span id="kpiATiempo" class="text-2xl font-black text-emerald-400">0</span>
       </div>
       <div class="glass-panel p-4 rounded-2xl border border-amber-500/30">
         <span class="text-[11px] text-amber-400 block uppercase">Retardos (> 09:15)</span>
-        <span id="kpiRetardos" class="text-2xl font-black text-amber-400">0</span>
+        <div class="flex items-baseline gap-2">
+          <span id="kpiRetardos" class="text-2xl font-black text-amber-400">0</span>
+          <span id="kpiMinutosRetardoTotal" class="text-[10px] text-slate-400">(0 min tot)</span>
+        </div>
       </div>
       <div class="glass-panel p-4 rounded-2xl border border-cyber-cyan/30">
         <span class="text-[11px] text-cyber-cyan block uppercase">En Turno Activo</span>
@@ -259,14 +262,17 @@
               <th class="p-3.5 text-center">Evidencia Entrada</th>
               <th class="p-3.5">Hora Entrada</th>
               <th class="p-3.5 text-center">Dictamen Entrada</th>
+              <th class="p-3.5">Salida Meta (8h)</th>
               <th class="p-3.5 text-center">Evidencia Salida</th>
               <th class="p-3.5">Hora Salida</th>
-              <th class="p-3.5">Auditoría IP / Equipo</th>
+              <th class="p-3.5 text-center">Tiempo Laborado</th>
+              <th class="p-3.5 text-center">Dictamen Salida</th>
+              <th class="p-3.5">Auditoría Dispositivo</th>
               <th class="p-3.5 text-center">Estatus</th>
             </tr>
           </thead>
           <tbody id="tablaAsistenciasBody" class="divide-y divide-cyber-border/40 font-mono text-slate-200">
-            <tr><td colspan="9" class="p-6 text-center text-slate-500">Cargando registros...</td></tr>
+            <tr><td colspan="12" class="p-6 text-center text-slate-500">Cargando registros...</td></tr>
           </tbody>
         </table>
       </div>
@@ -311,11 +317,10 @@
     let fechaInicioSeleccionada = '';
     let fechaFinSeleccionada = '';
     let fechaCursorMes = new Date();
-    let seleccionPasoTemporal = null; // null | 'inicio'
+    let seleccionPasoTemporal = null;
     let listenerActivoDesuscripcion = null;
     let datosConsolidadosMemoria = []; // [{ fecha, uid, ...item }]
 
-    // UTILIDADES DE FORMATO FECHAS (YYYY-MM-DD)
     const formatearYYYYMMDD = (d) => {
       const yyyy = d.getFullYear();
       const mm = String(d.getMonth() + 1).padStart(2, '0');
@@ -342,7 +347,6 @@
       validarAccesoGobernanza();
     });
 
-    // EFECTO MAGNÉTICO CON EL MOUSE EN PC
     function iniciarSeguimientoMouse() {
       const card = document.getElementById('capsulaRangoBtn');
       if (!card) return;
@@ -355,7 +359,7 @@
       });
     }
 
-    // APLICACIÓN ESTRICTA DEL MODELO DE GOBERNANZA RBAC (NIVEL 4 Y 5)
+    // GOBERNANZA RBAC (NIVEL 4 Y 5 REQUERIDO)
     function validarAccesoGobernanza() {
       onAuthStateChanged(auth, async (user) => {
         const candado = document.getElementById('candadoSeguridad');
@@ -387,7 +391,7 @@
           if (nivel < 4) {
             document.getElementById('txtMensajeBloqueo').innerHTML = `
               Tu cuenta tiene asignado el <strong>Nivel ${nivel} (${perfil.nombreRol || 'Operativo'})</strong>.<br>
-              Este módulo de auditoría y volcado de asistencia está reservado exclusivamente para los rangos de <strong>Nivel 4 (Supervisión)</strong> y <strong>Nivel 5 (Dirección)</strong>.
+              Este módulo de auditoría de asistencia está reservado exclusivamente para los rangos de <strong>Nivel 4 (Supervisión)</strong> y <strong>Nivel 5 (Dirección)</strong>.
             `;
             candado.classList.remove('hidden');
             panel.classList.add('hidden');
@@ -414,7 +418,6 @@
       });
     }
 
-    // LISTAR DÍAS COMPRENDIDOS ENTRE DOS FECHAS
     function obtenerArrayDias(fInicio, fFin) {
       const dias = [];
       let actual = parsearFechaLocal(fInicio);
@@ -437,7 +440,7 @@
       const badgeDias = document.getElementById('badgeDiasRango');
       badgeDias.textContent = listaDias.length === 1 ? '1 día (En Vivo)' : `${listaDias.length} días`;
 
-      // CASO 1: Un solo día -> Suscripción reactiva con onValue
+      // CASO 1: Un solo día -> Suscripción reactiva onValue
       if (listaDias.length === 1) {
         const path = `registro_asistencia_puntualidad/${listaDias[0]}`;
         const refDia = ref(db, path);
@@ -454,10 +457,10 @@
         return;
       }
 
-      // CASO 2: Rango multidía -> Consultas paralelas con get()
+      // CASO 2: Rango multidía -> Consultas paralelas get()
       document.getElementById('lblUltimaSincronizacion').textContent = 'Consultando periodo...';
       const tbody = document.getElementById('tablaAsistenciasBody');
-      tbody.innerHTML = `<tr><td colspan="9" class="p-8 text-center text-cyber-accent font-mono"><i class="fas fa-spinner fa-spin mr-2"></i>Consolidando ${listaDias.length} fechas en memoria...</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="12" class="p-8 text-center text-cyber-accent font-mono"><i class="fas fa-spinner fa-spin mr-2"></i>Consolidando ${listaDias.length} fechas en memoria...</td></tr>`;
 
       try {
         const promesas = listaDias.map(dia => get(ref(db, `registro_asistencia_puntualidad/${dia}`)));
@@ -478,14 +481,14 @@
           }
         });
 
-        // Orden cronológico inverso (fechas más recientes primero)
+        // Orden cronológico inverso (recientes primero)
         acumulado.sort((a, b) => (b.fecha + (b.entrada?.hora_local || '')).localeCompare(a.fecha + (a.entrada?.hora_local || '')));
         datosConsolidadosMemoria = acumulado;
         renderizarTablaConsolidada();
         document.getElementById('lblUltimaSincronizacion').textContent = `Corte: ${new Date().toLocaleTimeString('es-MX')}`;
       } catch (err) {
         console.error("Error al consolidar rango:", err);
-        tbody.innerHTML = `<tr><td colspan="9" class="p-8 text-center text-cyber-rose font-mono">Error de auditoría al leer rango de fechas.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="12" class="p-8 text-center text-cyber-rose font-mono">Error de auditoría al leer rango de fechas.</td></tr>`;
       }
     };
 
@@ -493,20 +496,33 @@
       const tbody = document.getElementById('tablaAsistenciasBody');
       tbody.innerHTML = '';
 
-      let tot = 0, aTiempo = 0, retardos = 0, activos = 0;
+      let tot = 0, aTiempo = 0, retardos = 0, activos = 0, totalMinutosRetardo = 0;
 
       if (datosConsolidadosMemoria.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="9" class="p-8 text-center text-slate-500 font-mono">No hay registros de asistencia entre el ${fechaInicioSeleccionada} y el ${fechaFinSeleccionada}.</td></tr>`;
-        actualizarKPIs(0, 0, 0, 0);
+        tbody.innerHTML = `<tr><td colspan="12" class="p-8 text-center text-slate-500 font-mono">No hay registros de asistencia entre el ${fechaInicioSeleccionada} y el ${fechaFinSeleccionada}.</td></tr>`;
+        actualizarKPIs(0, 0, 0, 0, 0);
         return;
       }
 
       datosConsolidadosMemoria.forEach(item => {
         tot++;
-        const esATiempo = item.entrada?.dictamen === 'A TIEMPO';
-        if (esATiempo) aTiempo++; else retardos++;
+        
+        // Evaluación estricta de puntualidad (06:00 a 09:15)
+        const minsRetardo = typeof item.entrada?.minutos_retardo === 'number' 
+          ? item.entrada.minutos_retardo 
+          : (item.entrada?.dictamen === 'A TIEMPO' ? 0 : 1);
 
-        const enTurno = !item.salida;
+        const esATiempo = minsRetardo === 0;
+        if (esATiempo) {
+          aTiempo++;
+        } else {
+          retardos++;
+          totalMinutosRetardo += minsRetardo;
+        }
+
+        // Evaluación de jornada y estatus
+        const estatusJornada = item.estatus_jornada || (item.salida ? 'CONCLUIDO' : 'ACTIVO');
+        const enTurno = estatusJornada === 'ACTIVO';
         if (enTurno) activos++;
 
         const tr = document.createElement('tr');
@@ -515,13 +531,28 @@
         const evidenciaEntradaHTML = generarBadgeEvidencia(item.entrada, item.colaborador || 'Colaborador');
         const evidenciaSalidaHTML = generarBadgeEvidencia(item.salida, item.colaborador || 'Colaborador');
 
-        const badgeDictamen = esATiempo
+        // Badges dictámenes
+        const badgeDictamenEntrada = esATiempo
           ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">A TIEMPO</span>`
-          : `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">${item.entrada?.dictamen || 'RETARDO'}</span>`;
+          : `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">${item.entrada?.dictamen || `RETARDO (+${minsRetardo}m)`}</span>`;
+
+        let badgeDictamenSalida = `<span class="text-slate-500 text-[10px] font-mono">En curso</span>`;
+        if (item.salida) {
+          const esCumplida = item.salida.dictamen === 'JORNADA CUMPLIDA' || (item.salida.minutos_laborados && item.salida.minutos_laborados >= 480);
+          badgeDictamenSalida = esCumplida
+            ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">CUMPLIDA</span>`
+            : `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">${item.salida.dictamen || 'ANTICIPADA'}</span>`;
+        }
 
         const badgeTurno = enTurno
           ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">ACTIVO</span>`
           : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/30">CONCLUIDO</span>`;
+
+        const tiempoLaboradoTexto = item.salida?.horas_laboradas_formato 
+          ? `<span class="text-cyber-accent font-bold text-xs">${item.salida.horas_laboradas_formato}</span>`
+          : (enTurno ? `<span class="text-cyber-cyan text-[10px] animate-pulse"><i class="fas fa-spinner fa-spin mr-1"></i>En turno</span>` : `<span class="text-slate-500 text-[10px]">—</span>`);
+
+        const salidaMetaTexto = item.entrada?.salida_programada_meta || '--:--';
 
         tr.innerHTML = `
           <td class="p-3.5 pl-5 font-bold text-cyber-cyan text-xs">${item.fecha}</td>
@@ -531,25 +562,29 @@
           </td>
           <td class="p-3.5 text-center">${evidenciaEntradaHTML}</td>
           <td class="p-3.5 text-white font-bold text-xs">${item.entrada?.hora_local || '--:--'}</td>
-          <td class="p-3.5 text-center">${badgeDictamen}</td>
+          <td class="p-3.5 text-center">${badgeDictamenEntrada}</td>
+          <td class="p-3.5 text-cyber-cyan font-mono text-xs font-bold">${salidaMetaTexto}</td>
           <td class="p-3.5 text-center">${evidenciaSalidaHTML}</td>
           <td class="p-3.5 text-slate-300 font-bold text-xs">${item.salida?.hora_local || 'En Turno'}</td>
+          <td class="p-3.5 text-center">${tiempoLaboradoTexto}</td>
+          <td class="p-3.5 text-center">${badgeDictamenSalida}</td>
           <td class="p-3.5 text-[10px] text-slate-400">
-            <div>IP: <span class="text-slate-200">${item.entrada?.ip_publica || 'N/D'}</span></div>
-            <div>Disp: ${item.entrada?.dispositivo || 'N/D'}</div>
+            <div>Disp: <span class="text-slate-200">${item.entrada?.dispositivo || 'N/D'}</span></div>
+            <div>IP: <span class="text-slate-300">${item.entrada?.ip_publica || 'N/D'}</span></div>
           </td>
           <td class="p-3.5 text-center">${badgeTurno}</td>
         `;
         tbody.appendChild(tr);
       });
 
-      actualizarKPIs(tot, aTiempo, retardos, activos);
+      actualizarKPIs(tot, aTiempo, retardos, activos, totalMinutosRetardo);
     }
 
-    function actualizarKPIs(tot, aTiempo, ret, act) {
+    function actualizarKPIs(tot, aTiempo, ret, act, minsRetardo) {
       document.getElementById('kpiTotal').textContent = tot;
       document.getElementById('kpiATiempo').textContent = aTiempo;
       document.getElementById('kpiRetardos').textContent = ret;
+      document.getElementById('kpiMinutosRetardoTotal').textContent = `(${minsRetardo} min tot)`;
       document.getElementById('kpiActivos').textContent = act;
     }
 
@@ -557,8 +592,8 @@
       if (!evento) return `<span class="text-slate-600 text-[10px] font-mono">—</span>`;
       if (evento.metodo === 'HUELLA_WEBAUTHN') {
         return `
-          <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono text-[10px] font-bold" title="Autenticación con Huella Biométrica FIDO2">
-            <i class="fas fa-fingerprint text-xs"></i> <span>Huella</span>
+          <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono text-[10px] font-bold" title="Autenticación con Huella / Passkey de Hardware">
+            <i class="fas fa-fingerprint text-xs"></i> <span>Huella / PIN</span>
           </div>
         `;
       }
@@ -567,13 +602,12 @@
           <img src="${evento.foto_b64}" 
                onclick="abrirModalZoom('${evento.foto_b64}', '${colaborador}', '${evento.hora_local || ''}')" 
                class="w-10 h-10 rounded-xl object-cover border border-cyber-accent cursor-pointer hover:scale-105 transition mx-auto" 
-               title="Ver selfie">
+               title="Ver selfie frontal">
         `;
       }
       return `<span class="text-slate-500 text-[10px]">Sin evidencia</span>`;
     }
 
-    // MODAL VISOR FOTOGRAFÍA
     window.abrirModalZoom = (src, titulo, hora) => {
       document.getElementById('imgZoomElemento').src = src;
       document.getElementById('txtTituloModalFoto').textContent = titulo;
@@ -585,9 +619,7 @@
       document.getElementById('modalZoomFoto').classList.add('hidden');
     };
 
-    // ==========================================
-    // CONTROL DEL ALMANAQUE Y SELECCIÓN DE RANGO
-    // ==========================================
+    // ALMANAQUE Y SELECCIÓN DE PERIODO
     window.togglePopoverAlmanaque = () => {
       const popover = document.getElementById('popoverAlmanaque');
       const icono = document.getElementById('iconoFlechaAlmanaque');
@@ -625,11 +657,9 @@
       const primerDiaMes = new Date(y, m, 1);
       const ultimoDiaMes = new Date(y, m + 1, 0);
 
-      // Ajuste ISO: Lunes = 0, Domingo = 6
       let diaSemanaInicio = primerDiaMes.getDay() - 1;
       if (diaSemanaInicio === -1) diaSemanaInicio = 6;
 
-      // Espacios vacíos antes del día 1
       for (let i = 0; i < diaSemanaInicio; i++) {
         const vacio = document.createElement('div');
         vacio.className = "h-9 rounded-lg opacity-10";
@@ -667,12 +697,10 @@
 
     function manejarClickDiaCalendario(fechaStr) {
       if (!seleccionPasoTemporal) {
-        // Primer clic: define inicio provisional
         seleccionPasoTemporal = fechaStr;
         fechaInicioSeleccionada = fechaStr;
         fechaFinSeleccionada = fechaStr;
       } else {
-        // Segundo clic: define rango ordenado
         const d1 = parsearFechaLocal(seleccionPasoTemporal);
         const d2 = parsearFechaLocal(fechaStr);
 
@@ -726,7 +754,7 @@
       }
     }
 
-    // PRESETS EJECUTIVOS DIRECTOS
+    // PRESETS DIRECTIVOS
     window.seleccionarPreset = (tipo) => {
       const hoy = new Date();
       let f1 = new Date();
@@ -787,7 +815,7 @@
       ejecutarConsultaPeriodo();
     };
 
-    // EXPORTACIÓN A CSV MULTIDÍA
+    // EXPORTACIÓN A CSV FORMATEADO PARA PRENÓMINA
     window.descargarReporteCSV = () => {
       if (datosConsolidadosMemoria.length === 0) {
         alert("No hay registros consolidados para exportar en el periodo seleccionado.");
@@ -796,38 +824,53 @@
 
       const encabezados = [
         "Fecha",
+        "UID_Colaborador",
         "Colaborador", 
         "Rol", 
         "División", 
-        "Método Entrada",
-        "Hora Entrada", 
-        "Dictamen Entrada", 
-        "IP Entrada", 
-        "Dispositivo", 
-        "Método Salida",
-        "Hora Salida", 
-        "Dictamen Salida", 
-        "Estatus"
+        "Método_Entrada",
+        "Hora_Entrada", 
+        "Dictamen_Entrada",
+        "Minutos_Retardo",
+        "Salida_Meta_8h",
+        "Método_Salida",
+        "Hora_Salida", 
+        "Dictamen_Salida", 
+        "Minutos_Laborados",
+        "Tiempo_Efectivo",
+        "Minutos_Extra",
+        "Estatus_Jornada",
+        "IP_Auditoría", 
+        "Dispositivo"
       ];
       
       const filas = datosConsolidadosMemoria.map(item => {
-        const metEntrada = item.entrada?.metodo === 'HUELLA_WEBAUTHN' ? 'Huella Móvil' : (item.entrada?.foto_b64 ? 'Selfie' : 'N/D');
-        const metSalida = item.salida?.metodo === 'HUELLA_WEBAUTHN' ? 'Huella Móvil' : (item.salida?.foto_b64 ? 'Selfie' : 'N/D');
+        const metEntrada = item.entrada?.metodo === 'HUELLA_WEBAUTHN' ? 'Huella / PIN' : (item.entrada?.foto_b64 ? 'Selfie' : 'N/D');
+        const metSalida = item.salida?.metodo === 'HUELLA_WEBAUTHN' ? 'Huella / PIN' : (item.salida?.foto_b64 ? 'Selfie' : 'N/D');
+        const minsRetardo = typeof item.entrada?.minutos_retardo === 'number' ? item.entrada.minutos_retardo : 0;
+        const minsLaborados = typeof item.salida?.minutos_laborados === 'number' ? item.salida.minutos_laborados : 0;
+        const minsExtra = typeof item.salida?.minutos_extra === 'number' ? item.salida.minutos_extra : 0;
 
         return [
           `"${item.fecha || ''}"`,
+          `"${item.uid || ''}"`,
           `"${item.colaborador || ''}"`,
           `"${item.rol || ''}"`,
           `"${item.division || ''}"`,
           `"${metEntrada}"`,
           `"${item.entrada?.hora_local || ''}"`,
           `"${item.entrada?.dictamen || ''}"`,
-          `"${item.entrada?.ip_publica || ''}"`,
-          `"${item.entrada?.dispositivo || ''}"`,
+          `${minsRetardo}`,
+          `"${item.entrada?.salida_programada_meta || ''}"`,
           `"${metSalida}"`,
           `"${item.salida?.hora_local || ''}"`,
           `"${item.salida?.dictamen || ''}"`,
-          `"${item.salida ? 'CONCLUIDO' : 'ACTIVO'}"`
+          `${minsLaborados}`,
+          `"${item.salida?.horas_laboradas_formato || ''}"`,
+          `${minsExtra}`,
+          `"${item.estatus_jornada || (item.salida ? 'CONCLUIDO' : 'ACTIVO')}"`,
+          `"${item.entrada?.ip_publica || ''}"`,
+          `"${item.entrada?.dispositivo || ''}"`
         ];
       });
 
@@ -836,7 +879,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `Reporte_Auditoria_${fechaInicioSeleccionada}_al_${fechaFinSeleccionada}.csv`;
+      a.download = `Prenomina_Auditoria_${fechaInicioSeleccionada}_al_${fechaFinSeleccionada}.csv`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);

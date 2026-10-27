@@ -32,7 +32,9 @@
           },
           boxShadow: {
             'glow-accent': '0 0 25px -5px rgba(255, 102, 0, 0.4)',
-            'glow-card': '0 20px 40px -15px rgba(0, 0, 0, 0.8)'
+            'glow-card': '0 20px 40px -15px rgba(0, 0, 0, 0.8)',
+            'glow-emerald': '0 0 25px -5px rgba(16, 185, 129, 0.4)',
+            'glow-cyan': '0 0 25px -5px rgba(6, 182, 212, 0.4)'
           }
         }
       }
@@ -51,6 +53,13 @@
     .mirror-mode {
       transform: scaleX(-1);
     }
+    .custom-scroll::-webkit-scrollbar {
+      width: 4px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: rgba(6, 182, 212, 0.4);
+      border-radius: 4px;
+    }
   </style>
 </head>
 <body class="bg-cyber-bg text-slate-100 font-sans min-h-screen antialiased p-3 sm:p-6 flex flex-col justify-between selection:bg-cyber-accent selection:text-white">
@@ -63,7 +72,7 @@
       </div>
       <div>
         <h1 class="font-black text-white text-sm tracking-wider uppercase font-mono">Checador Emco</h1>
-        <span class="text-[10px] text-cyber-cyan font-mono block">Control de Asistencia & Puntualidad</span>
+        <span class="text-[10px] text-cyber-cyan font-mono block">Control de Asistencia & Puntualidad Dinámica</span>
       </div>
     </div>
     <div class="flex items-center gap-2">
@@ -123,12 +132,12 @@
     <!-- Ficha del Colaborador -->
     <div class="flex items-center justify-between border-b border-cyber-border pb-4">
       <div class="space-y-0.5">
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 flex-wrap">
           <span id="lblPerfilRol" class="text-[10px] font-mono uppercase font-bold text-cyber-accent bg-cyber-accent/10 border border-cyber-accent/30 px-2.5 py-0.5 rounded-full">
             Cargando rol...
           </span>
-          <span class="text-[10px] font-mono text-slate-400 border border-slate-700 px-2 py-0.5 rounded-full">
-            Turno: 09:00 - 18:00
+          <span class="text-[10px] font-mono text-slate-300 border border-slate-700 bg-slate-900/60 px-2 py-0.5 rounded-full flex items-center gap-1">
+            <i class="fas fa-clock text-cyber-cyan text-[9px]"></i> Jornada: 8h (Entrada: 06:00 - 09:15)
           </span>
         </div>
         <h2 id="lblPerfilNombre" class="text-lg font-black text-white tracking-tight">Colaborador</h2>
@@ -139,16 +148,24 @@
       </button>
     </div>
 
-    <!-- TARJETA ENROLAMIENTO BIOMÉTRICO (Si el dispositivo no está vinculado) -->
-    <div id="bannerVincularHuella" class="hidden p-4 rounded-2xl bg-cyber-cyan/10 border border-cyber-cyan/30 text-xs space-y-2">
-      <div class="flex items-center gap-2 text-cyber-cyan font-bold font-mono">
-        <i class="fas fa-fingerprint text-base"></i> Configurar Huella Dactilar
+    <!-- TARJETA ENROLAMIENTO MULTIDISPOSITIVO -->
+    <div id="bannerVincularHuella" class="p-4 rounded-2xl bg-cyber-cyan/10 border border-cyber-cyan/30 text-xs space-y-2.5">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2 text-cyber-cyan font-bold font-mono">
+          <i class="fas fa-fingerprint text-base"></i> Huella / Passkey del Equipo
+        </div>
+        <div class="flex items-center gap-1.5">
+          <span id="badgeDispositivosRegistrados" class="text-[10px] font-mono bg-cyber-cyan/20 border border-cyber-cyan/30 px-2 py-0.5 rounded text-cyber-cyan font-bold">0 Teléfono(s)</span>
+          <button onclick="abrirModalGestionDispositivos()" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 text-[10px] font-mono font-bold transition flex items-center gap-1" title="Administrar celulares vinculados">
+            <i class="fas fa-sliders text-cyber-accent"></i> Gestionar
+          </button>
+        </div>
       </div>
       <p class="text-slate-300 text-[11px] leading-relaxed">
-        Protege tu privacidad: vincula el sensor de huella de este teléfono para checar entrada y salida sin necesidad de tomarte selfies.
+        Cada celular requiere una llave de seguridad. Si ingresas desde otro teléfono, autorízalo una sola vez para checar con su lector o clave.
       </p>
-      <button onclick="vincularBiometriaWebAuthn()" id="btnVincularBiometria" class="w-full py-2.5 px-3 rounded-xl bg-cyber-cyan hover:bg-cyan-500 text-slate-950 font-bold font-mono text-xs uppercase flex items-center justify-center gap-2 transition">
-        <i class="fas fa-shield-halved"></i> Vincular Huella de este Teléfono
+      <button onclick="vincularBiometriaWebAuthn()" id="btnVincularBiometria" class="w-full py-2.5 px-3 rounded-xl bg-cyber-cyan hover:bg-cyan-500 text-slate-950 font-bold font-mono text-xs uppercase flex items-center justify-center gap-2 transition shadow-glow-cyan touch-target">
+        <i class="fas fa-key"></i> Autorizar Huella / PIN en este Teléfono
       </button>
     </div>
 
@@ -161,11 +178,11 @@
       </div>
     </div>
 
-    <!-- Tarjeta de Estado del Día -->
+    <!-- Tarjeta de Estado del Día (JORNADA DINÁMICA 8H) -->
     <div class="p-4 rounded-2xl border border-cyber-border bg-slate-900/50 space-y-3">
       <div class="flex justify-between items-center text-xs font-mono">
         <span class="text-slate-400 uppercase font-bold">Estatus del Día:</span>
-        <span id="badgeJornadaEstatus" class="px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 font-bold">Sin Registro</span>
+        <span id="badgeJornadaEstatus" class="px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 font-bold">Sin Iniciar</span>
       </div>
 
       <div class="grid grid-cols-2 gap-3 pt-2 border-t border-cyber-border/40 text-xs font-mono">
@@ -176,11 +193,13 @@
             <span id="badgeDictamenEntrada" class="text-[9px] px-1.5 py-0.5 rounded font-bold uppercase hidden">A Tiempo</span>
           </div>
           <span id="txtHoraEntradaRegistrada" class="text-white font-bold text-sm block">--:--:--</span>
+          <div id="txtMetaSalidaProgramada" class="text-[10px] text-cyber-cyan font-mono hidden">
+            Meta: <span id="lblHoraMeta8h" class="text-white font-bold">--:--</span> (8h)
+          </div>
           
-          <!-- Evidencia Entrada: Foto o Huella -->
           <div id="evidenciaEntradaContainer" class="hidden pt-1">
             <div id="boxHuellaEntrada" class="hidden p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] flex items-center gap-1.5 font-bold">
-              <i class="fas fa-fingerprint text-base"></i> Huella Verificada
+              <i class="fas fa-fingerprint text-base"></i> Biometría OK
             </div>
             <img id="imgThumbEntrada" class="hidden w-14 h-14 rounded-lg object-cover border border-cyber-accent">
           </div>
@@ -193,11 +212,13 @@
             <span id="badgeDictamenSalida" class="text-[9px] px-1.5 py-0.5 rounded font-bold uppercase hidden">Completa</span>
           </div>
           <span id="txtHoraSalidaRegistrada" class="text-white font-bold text-sm block">--:--:--</span>
+          <div id="txtTiempoLaboradoDesglose" class="text-[10px] text-slate-400 font-mono hidden">
+            Laborado: <span id="lblHorasLaboradasTotal" class="text-cyber-accent font-bold">--</span>
+          </div>
           
-          <!-- Evidencia Salida: Foto o Huella -->
           <div id="evidenciaSalidaContainer" class="hidden pt-1">
             <div id="boxHuellaSalida" class="hidden p-2 rounded-xl bg-cyber-cyan/10 border border-cyan-500/30 text-cyan-400 text-[10px] flex items-center gap-1.5 font-bold">
-              <i class="fas fa-fingerprint text-base"></i> Huella Verificada
+              <i class="fas fa-fingerprint text-base"></i> Biometría OK
             </div>
             <img id="imgThumbSalida" class="hidden w-14 h-14 rounded-lg object-cover border border-cyber-rose">
           </div>
@@ -206,30 +227,128 @@
     </div>
 
     <!-- BOTONES DE ACCIÓN (HUELLA BIOMÉTRICA COMO MÉTODO PRINCIPAL) -->
-    <div class="space-y-2.5 pt-1">
+    <div class="space-y-3 pt-1">
       
       <!-- Entrada -->
       <div id="grupoAccionEntrada" class="space-y-2">
-        <button id="btnChecarEntradaHuella" onclick="checarConHuella('ENTRADA')" class="w-full py-3.5 px-4 rounded-2xl bg-cyber-emerald hover:bg-emerald-600 text-slate-950 font-black text-sm uppercase tracking-wider transition-all shadow-glow-card touch-target flex items-center justify-center gap-2">
-          <i class="fas fa-fingerprint text-xl"></i> Registrar Entrada con Huella
+        <button id="btnChecarEntradaHuella" onclick="checarConHuella('ENTRADA')" class="w-full py-4 px-4 rounded-2xl bg-cyber-emerald hover:bg-emerald-600 text-slate-950 font-black text-sm uppercase tracking-wider transition-all shadow-glow-emerald touch-target flex items-center justify-center gap-3">
+          <i class="fas fa-fingerprint text-2xl"></i> Registrar Entrada con Huella / PIN
         </button>
-        <button type="button" onclick="abrirCamaraModal('ENTRADA')" class="w-full text-center text-xs text-slate-400 hover:text-cyber-cyan transition font-mono flex items-center justify-center gap-1.5">
-          <i class="fas fa-camera text-[10px]"></i> ¿No tienes huella? Checar con selfie
-        </button>
+        <div class="flex items-center justify-between px-1 text-xs font-mono text-slate-400">
+          <button type="button" onclick="abrirCamaraModal('ENTRADA')" class="hover:text-cyber-cyan transition flex items-center gap-1.5">
+            <i class="fas fa-camera text-[11px]"></i> Checar con Selfie
+          </button>
+          <button type="button" onclick="vincularBiometriaWebAuthn()" class="hover:text-cyber-accent transition flex items-center gap-1.5">
+            <i class="fas fa-plus-circle text-[11px]"></i> Agregar este cel
+          </button>
+        </div>
       </div>
 
       <!-- Salida -->
       <div id="grupoAccionSalida" class="space-y-2 hidden">
-        <button id="btnChecarSalidaHuella" onclick="checarConHuella('SALIDA')" class="w-full py-3.5 px-4 rounded-2xl bg-cyber-rose hover:bg-rose-600 text-white font-black text-sm uppercase tracking-wider transition-all shadow-glow-card touch-target flex items-center justify-center gap-2">
-          <i class="fas fa-fingerprint text-xl"></i> Finalizar Turno con Huella
+        <button id="btnChecarSalidaHuella" onclick="checarConHuella('SALIDA')" class="w-full py-4 px-4 rounded-2xl bg-cyber-rose hover:bg-rose-600 text-white font-black text-sm uppercase tracking-wider transition-all shadow-glow-card touch-target flex items-center justify-center gap-3">
+          <i class="fas fa-fingerprint text-2xl"></i> Finalizar Turno con Huella / PIN
         </button>
-        <button type="button" onclick="abrirCamaraModal('SALIDA')" class="w-full text-center text-xs text-slate-400 hover:text-cyber-rose transition font-mono flex items-center justify-center gap-1.5">
-          <i class="fas fa-camera text-[10px]"></i> Finalizar turno con selfie
-        </button>
+        <div class="flex items-center justify-between px-1 text-xs font-mono text-slate-400">
+          <button type="button" onclick="abrirCamaraModal('SALIDA')" class="hover:text-cyber-rose transition flex items-center gap-1.5">
+            <i class="fas fa-camera text-[11px]"></i> Finalizar con Selfie
+          </button>
+          <button type="button" onclick="vincularBiometriaWebAuthn()" class="hover:text-cyber-accent transition flex items-center gap-1.5">
+            <i class="fas fa-plus-circle text-[11px]"></i> Agregar este cel
+          </button>
+        </div>
       </div>
 
     </div>
   </main>
+
+  <!-- MODAL INFORMATIVO DE RETROALIMENTACIÓN DE SALIDA (HORAS TRABAJADAS) -->
+  <div id="modalResumenSalida" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+    <div class="glass-panel border border-cyber-accent rounded-3xl max-w-sm w-full p-6 text-center space-y-4 shadow-glow-card">
+      <div class="w-14 h-14 rounded-2xl bg-cyber-accent/20 border border-cyber-accent/40 flex items-center justify-center text-cyber-accent text-2xl mx-auto shadow-glow-accent">
+        <i class="fas fa-award"></i>
+      </div>
+      <div>
+        <h3 class="text-base font-black uppercase text-white font-mono">¡Jornada Registrada!</h3>
+        <p class="text-xs text-slate-300 mt-1 font-mono">Resumen de tu tiempo laborado hoy:</p>
+      </div>
+
+      <div class="bg-slate-950/70 border border-cyber-border rounded-2xl p-4 space-y-2 font-mono">
+        <div class="flex justify-between text-xs text-slate-400">
+          <span>Tiempo trabajado:</span>
+          <strong id="lblResumenHorasTexto" class="text-cyber-cyan text-sm">--</strong>
+        </div>
+        <div class="flex justify-between text-xs text-slate-400 border-t border-slate-800 pt-2">
+          <span>Dictamen final:</span>
+          <strong id="lblResumenDictamen" class="text-emerald-400">--</strong>
+        </div>
+      </div>
+
+      <button onclick="cerrarModalResumenSalida()" class="w-full py-3 rounded-xl bg-cyber-accent hover:bg-cyber-accentHover text-slate-950 font-black font-mono text-xs uppercase shadow-glow-accent">
+        Aceptar y Continuar
+      </button>
+    </div>
+  </div>
+
+  <!-- DASH FLOTANTE: GESTIÓN DE CELULARES Y DISPOSITIVOS VINCULADOS -->
+  <div id="modalGestionDispositivos" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4 transition-opacity">
+    <div class="glass-panel border border-cyber-border rounded-t-3xl sm:rounded-3xl max-w-md w-full p-5 space-y-4 shadow-2xl animate-fadeIn">
+      
+      <div class="flex justify-between items-center border-b border-cyber-border/80 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-cyber-cyan/15 border border-cyber-cyan/30 flex items-center justify-center text-cyber-cyan">
+            <i class="fas fa-mobile-screen-button"></i>
+          </div>
+          <div>
+            <h3 class="text-xs font-mono font-black text-white uppercase tracking-wider">Dispositivos Vinculados</h3>
+            <span class="text-[10px] text-slate-400 font-mono">Control de Huellas y Llaves Passkey</span>
+          </div>
+        </div>
+        <button onclick="cerrarModalGestionDispositivos()" class="text-slate-400 hover:text-white text-base font-bold p-1">✕</button>
+      </div>
+
+      <p class="text-[11px] text-slate-300 font-mono leading-relaxed">
+        Lista de equipos autorizados para checar con biometría. Puedes desvincular celulares antiguos o extraviados.
+      </p>
+
+      <div id="listaDispositivosEnrolados" class="space-y-2.5 max-h-60 overflow-y-auto pr-1 custom-scroll font-mono">
+        <!-- Inyectado por JS -->
+      </div>
+
+      <div class="pt-2 border-t border-cyber-border/60 flex gap-2">
+        <button type="button" onclick="vincularBiometriaWebAuthn()" class="w-full py-2.5 rounded-xl bg-cyber-cyan hover:bg-cyan-500 text-slate-950 font-bold font-mono text-xs uppercase flex items-center justify-center gap-2 shadow-glow-cyan touch-target">
+          <i class="fas fa-plus"></i> Vincular Este Teléfono
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE CONTINGENCIA INTELIGENTE -->
+  <div id="modalFallbackOpciones" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+    <div class="glass-panel border border-cyber-amber rounded-3xl max-w-sm w-full p-5 space-y-4 text-center">
+      <div class="w-12 h-12 mx-auto rounded-2xl bg-cyber-amber/15 border border-cyber-amber/30 flex items-center justify-center text-cyber-amber text-xl">
+        <i class="fas fa-shield-cat"></i>
+      </div>
+      <div>
+        <h3 class="text-sm font-black uppercase text-white font-mono">¿Problemas con el sensor?</h3>
+        <p class="text-[11px] text-slate-300 mt-1 leading-relaxed">
+          Puedes checar de inmediato con tu selfie frontal o autorizar la huella/PIN de este teléfono para las siguientes ocasiones.
+        </p>
+      </div>
+
+      <div class="space-y-2 pt-2">
+        <button onclick="ejecutarFallbackSelfie()" class="w-full py-3 px-4 rounded-xl bg-cyber-accent hover:bg-cyber-accentHover text-slate-950 font-black font-mono text-xs uppercase shadow-glow-accent flex items-center justify-center gap-2">
+          <i class="fas fa-camera"></i> Checar con Selfie Ahora
+        </button>
+        <button onclick="ejecutarFallbackVincular()" class="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyber-cyan border border-cyber-cyan/30 font-bold font-mono text-xs uppercase flex items-center justify-center gap-2">
+          <i class="fas fa-key"></i> Autorizar Huella de este Teléfono
+        </button>
+        <button onclick="cerrarFallbackModal()" class="w-full py-2 text-slate-500 hover:text-slate-300 font-mono text-xs">
+          Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- MODAL DE CAPTURA RESPONSIVE (MÉTODO ALTERNATIVO SELFIE) -->
   <div id="modalCapturaCamara" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 sm:p-4">
@@ -269,14 +388,14 @@
     Checador Emco • Gobernanza y Asistencia
   </footer>
 
-  <!-- MOTOR VINCULADO AL NODO 'registro_asistencia_puntualidad' CON WEBAUTHN -->
+  <!-- MOTOR VINCULADO AL NODO 'registro_asistencia_puntualidad' CON JORNADA DINÁMICA 8H -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { 
       getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut 
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { 
-      getDatabase, ref, get, update, serverTimestamp, onValue 
+      getDatabase, ref, get, update, remove, serverTimestamp, onValue 
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
@@ -294,22 +413,26 @@
     const auth = getAuth(app);
     const db = getDatabase(app);
 
-    // Horarios Base de Control Remoto
-    const HORARIO_ENTRADA_OFICIAL = "09:00";
-    const HORARIO_SALIDA_OFICIAL = "18:00";
-    const TOLERANCIA_MINUTOS = 15;
+    // ==========================================
+    // PARÁMETROS DE JORNADA DINÁMICA 8 HORAS
+    // ==========================================
+    const VENTANA_ENTRADA_INICIO = "06:00"; // 06:00 AM
+    const VENTANA_ENTRADA_LIMITE = "09:15"; // 09:15 AM
+    const HORAS_JORNADA_BASE = 8;
+    const MINUTOS_JORNADA_BASE = HORAS_JORNADA_BASE * 60; // 480 minutos
 
     let usuarioActual = null;
     let streamCamara = null;
     let accionActual = 'ENTRADA';
     let ipDetectada = 'Desconocida';
-    let credencialBiometricaRegistrada = null;
+    let mapaCredencialesBiometricas = {};
+    let asistenciaHoyCargada = null;
 
     setInterval(actualizarRelojDigital, 1000);
     actualizarRelojDigital();
     detectarIpPublica();
 
-    // 1. Escuchar sesión y validar con la Gobernanza del ERP
+    // 1. Escuchar sesión y validar con Gobernanza
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
         mostrarVistaLogin();
@@ -334,7 +457,15 @@
         }
 
         const nivelNum = parseInt(perfil.nivel) || 2;
-        credencialBiometricaRegistrada = perfil.credencial_biometrica || null;
+        
+        // Cargar mapa multidispositivo de biometría
+        mapaCredencialesBiometricas = {};
+        if (perfil.credenciales_biometricas) {
+          mapaCredencialesBiometricas = perfil.credenciales_biometricas;
+        } else if (perfil.credencial_biometrica && perfil.credencial_biometrica.id) {
+          const legacyKey = perfil.credencial_biometrica.id.replace(/[/+=]/g, '_');
+          mapaCredencialesBiometricas[legacyKey] = perfil.credencial_biometrica;
+        }
 
         usuarioActual = {
           uid: user.uid,
@@ -342,17 +473,10 @@
           email: user.email,
           rol: perfil.nombreRol || "Colaborador",
           nivel: nivelNum,
-          division: perfil.division || "Nacional",
-          credencial: credencialBiometricaRegistrada
+          division: perfil.division || "Nacional"
         };
 
-        // Mostrar u ocultar banner de vinculación de huella
-        const bannerHuella = document.getElementById('bannerVincularHuella');
-        if (!credencialBiometricaRegistrada && window.PublicKeyCredential) {
-          bannerHuella.classList.remove('hidden');
-        } else {
-          bannerHuella.classList.add('hidden');
-        }
+        actualizarBadgeConteoDispositivos();
 
         // Mostrar botón de Auditoría si es Nivel 4 o Nivel 5
         const btnM1 = document.getElementById('btnIrAuditoriaM1');
@@ -370,6 +494,12 @@
         alert("Fallo de conexión al validar perfil en el servidor.");
       }
     });
+
+    function actualizarBadgeConteoDispositivos() {
+      const cant = Object.keys(mapaCredencialesBiometricas).length;
+      const badgeDisp = document.getElementById('badgeDispositivosRegistrados');
+      badgeDisp.textContent = `${cant} Teléfono${cant === 1 ? '' : 's'}`;
+    }
 
     // 2. Acceso Staff
     window.iniciarSesionStaff = async (e) => {
@@ -429,7 +559,8 @@
       const path = `registro_asistencia_puntualidad/${fechaClave}/${usuarioActual.uid}`;
 
       onValue(ref(db, path), (snap) => {
-        actualizarPantallaAsistencia(snap.val());
+        asistenciaHoyCargada = snap.val();
+        actualizarPantallaAsistencia(asistenciaHoyCargada);
       });
     }
 
@@ -443,6 +574,12 @@
 
       const badgeDictamenEntrada = document.getElementById('badgeDictamenEntrada');
       const badgeDictamenSalida = document.getElementById('badgeDictamenSalida');
+
+      const metaSalidaContainer = document.getElementById('txtMetaSalidaProgramada');
+      const lblHoraMeta = document.getElementById('lblHoraMeta8h');
+
+      const tiempoLaboradoContainer = document.getElementById('txtTiempoLaboradoDesglose');
+      const lblHorasLaboradas = document.getElementById('lblHorasLaboradasTotal');
 
       const contEntrada = document.getElementById('evidenciaEntradaContainer');
       const boxHuellaEntrada = document.getElementById('boxHuellaEntrada');
@@ -459,6 +596,8 @@
         txtSalida.textContent = "--:--:--";
         badgeDictamenEntrada.classList.add('hidden');
         badgeDictamenSalida.classList.add('hidden');
+        metaSalidaContainer.classList.add('hidden');
+        tiempoLaboradoContainer.classList.add('hidden');
         
         grupoEntrada.classList.remove('hidden');
         grupoSalida.classList.add('hidden');
@@ -475,6 +614,12 @@
       badgeDictamenEntrada.className = data.entrada.dictamen === "A TIEMPO"
         ? "text-[9px] px-1.5 py-0.5 rounded font-bold uppercase bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
         : "text-[9px] px-1.5 py-0.5 rounded font-bold uppercase bg-amber-500/15 text-amber-400 border border-amber-500/30";
+
+      // Meta de 8 horas
+      if (data.entrada.salida_programada_meta) {
+        metaSalidaContainer.classList.remove('hidden');
+        lblHoraMeta.textContent = data.entrada.salida_programada_meta;
+      }
 
       contEntrada.classList.remove('hidden');
       if (data.entrada.metodo === 'HUELLA_WEBAUTHN') {
@@ -493,6 +638,7 @@
         grupoSalida.classList.remove('hidden');
         txtSalida.textContent = "--:--:--";
         badgeDictamenSalida.classList.add('hidden');
+        tiempoLaboradoContainer.classList.add('hidden');
         contSalida.classList.add('hidden');
       } else {
         badge.textContent = "🔵 Turno Concluido";
@@ -503,7 +649,13 @@
         badgeDictamenSalida.textContent = data.salida.dictamen || "Completado";
         badgeDictamenSalida.className = data.salida.dictamen === "JORNADA CUMPLIDA"
           ? "text-[9px] px-1.5 py-0.5 rounded font-bold uppercase bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
-          : "text-[9px] px-1.5 py-0.5 rounded font-bold uppercase bg-rose-500/15 text-rose-400 border border-rose-500/30";
+          : "text-[9px] px-1.5 py-0.5 rounded font-bold uppercase bg-amber-500/15 text-amber-400 border border-amber-500/30";
+
+        // Desglose de horas laboradas
+        if (data.salida.horas_laboradas_formato) {
+          tiempoLaboradoContainer.classList.remove('hidden');
+          lblHorasLaboradas.textContent = data.salida.horas_laboradas_formato;
+        }
 
         contSalida.classList.remove('hidden');
         if (data.salida.metodo === 'HUELLA_WEBAUTHN') {
@@ -520,35 +672,82 @@
       }
     }
 
-    // 4. Reglas y Cálculo de Puntualidad
-    function evaluarDictamenEntrada(horaRegistroStr) {
-      const [hReg, mReg] = horaRegistroStr.split(':').map(Number);
-      const [hEsp, mEsp] = HORARIO_ENTRADA_OFICIAL.split(':').map(Number);
+    // ==========================================
+    // 4. REGLAS DE PUNTUALIDAD Y JORNADA DINÁMICA
+    // ==========================================
+
+    // Entrada: Tolerable de 06:00 a 09:15
+    function evaluarDictamenEntrada(horaStr) {
+      const [hReg, mReg] = horaStr.split(':').map(Number);
+      const [hLim, mLim] = VENTANA_ENTRADA_LIMITE.split(':').map(Number);
+      const [hIni, mIni] = VENTANA_ENTRADA_INICIO.split(':').map(Number);
 
       const minReg = hReg * 60 + mReg;
-      const minLimite = hEsp * 60 + mEsp + TOLERANCIA_MINUTOS;
+      const minLimite = hLim * 60 + mLim; // 09:15 = 555 mins
+      const minInicio = hIni * 60 + mIni; // 06:00 = 360 mins
+
+      // Meta: Entrada + 8 horas exactas
+      const minMeta = minReg + MINUTOS_JORNADA_BASE;
+      const hMeta = Math.floor(minMeta / 60) % 24;
+      const mMeta = minMeta % 60;
+      const salidaMetaStr = `${String(hMeta).padStart(2, '0')}:${String(mMeta).padStart(2, '0')}`;
 
       if (minReg <= minLimite) {
-        return "A TIEMPO";
+        return {
+          dictamen: "A TIEMPO",
+          minutos_retardo: 0,
+          salida_programada_meta: salidaMetaStr
+        };
       } else {
-        const retardo = minReg - (hEsp * 60 + mEsp);
-        return `RETARDO (${retardo} MIN)`;
+        const retardo = minReg - minLimite;
+        return {
+          dictamen: `RETARDO (${retardo} MIN)`,
+          minutos_retardo: retardo,
+          salida_programada_meta: salidaMetaStr
+        };
       }
     }
 
-    function evaluarDictamenSalida(horaSalidaStr) {
-      const [hReg, mReg] = horaSalidaStr.split(':').map(Number);
-      const [hEsp, mEsp] = HORARIO_SALIDA_OFICIAL.split(':').map(Number);
+    // Salida: Comparación con hora de entrada para calcular 8h
+    function evaluarDictamenSalida(horaSalidaStr, horaEntradaStr) {
+      const [hSal, mSal] = horaSalidaStr.split(':').map(Number);
+      const [hEnt, mEnt] = (horaEntradaStr || "09:00:00").split(':').map(Number);
 
-      const minReg = hReg * 60 + mReg;
-      const minEsp = hEsp * 60 + mEsp;
+      let minSalida = hSal * 60 + mSal;
+      const minEntrada = hEnt * 60 + mEnt;
 
-      return (minReg >= minEsp) ? "JORNADA CUMPLIDA" : "SALIDA ANTICIPADA";
+      // Si cruzó la medianoche
+      if (minSalida < minEntrada) {
+        minSalida += 24 * 60;
+      }
+
+      const minutosLaborados = Math.max(0, minSalida - minEntrada);
+      const horas = Math.floor(minutosLaborados / 60);
+      const minutos = minutosLaborados % 60;
+      const formatoTexto = `${horas}h ${minutos}m`;
+
+      let dictamen = "JORNADA CUMPLIDA";
+      let minutosExtra = 0;
+
+      if (minutosLaborados >= MINUTOS_JORNADA_BASE) {
+        minutosExtra = minutosLaborados - MINUTOS_JORNADA_BASE;
+        dictamen = "JORNADA CUMPLIDA";
+      } else {
+        const faltaron = MINUTOS_JORNADA_BASE - minutosLaborados;
+        dictamen = `SALIDA ANTICIPADA (-${faltaron} MIN)`;
+      }
+
+      return {
+        dictamen: dictamen,
+        minutos_laborados: minutosLaborados,
+        horas_laboradas_formato: formatoTexto,
+        minutos_extra: minutosExtra
+      };
     }
 
-    // ==========================================
-    // 5. MOTOR WEBAUTHN (BIOMETRÍA LOCAL / HUELLA)
-    // ==========================================
+    // ========================================================
+    // 5. MOTOR WEBAUTHN MULTIDISPOSITIVO (HUELLA / PIN LOCAL)
+    // ========================================================
 
     function arrayBufferToBase64(buffer) {
       let binary = '';
@@ -569,16 +768,16 @@
       return bytes.buffer;
     }
 
-    // Enrolar el sensor biométrico del teléfono
+    // Enrolar el dispositivo actual (agrega a la colección)
     window.vincularBiometriaWebAuthn = async () => {
       if (!window.PublicKeyCredential) {
-        alert("Tu dispositivo o navegador no soporta autenticación biométrica WebAuthn.");
+        alert("Tu dispositivo o navegador no soporta autenticación biométrica/Passkeys.");
         return;
       }
 
       const btn = document.getElementById('btnVincularBiometria');
       btn.disabled = true;
-      btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Coloca tu huella...`;
+      btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Coloca tu huella o PIN...`;
 
       try {
         const challenge = new Uint8Array(32);
@@ -597,10 +796,14 @@
             name: usuarioActual.email,
             displayName: usuarioActual.nombre
           },
-          pubKeyCredParams: [{ alg: -7, type: "public-key" }],
+          pubKeyCredParams: [
+            { alg: -7, type: "public-key" },  // ES256
+            { alg: -257, type: "public-key" } // RS256
+          ],
           authenticatorSelection: {
-            authenticatorAttachment: "platform", // Sensor local del teléfono/laptop
-            userVerification: "required"
+            authenticatorAttachment: "platform",
+            userVerification: "required",
+            residentKey: "preferred"
           },
           timeout: 60000,
           attestation: "none"
@@ -611,42 +814,49 @@
         });
 
         const rawIdBase64 = arrayBufferToBase64(credential.rawId);
+        const credencialKeySegura = rawIdBase64.replace(/[/+=]/g, '_');
 
-        // Guardar credencial en el perfil del usuario
-        await update(ref(db, `usuarios_reclutadores/${usuarioActual.uid}`), {
-          credencial_biometrica: {
-            id: rawIdBase64,
-            fecha_registro: new Date().toISOString(),
-            dispositivo: identificarDispositivo()
-          }
-        });
+        const nuevoRegistroDispositivo = {
+          id: rawIdBase64,
+          fecha_registro: new Date().toISOString(),
+          dispositivo: identificarDispositivo(),
+          agente: navigator.userAgent.substring(0, 90)
+        };
 
-        credencialBiometricaRegistrada = { id: rawIdBase64 };
-        usuarioActual.credencial = credencialBiometricaRegistrada;
-        document.getElementById('bannerVincularHuella').classList.add('hidden');
+        await update(ref(db, `usuarios_reclutadores/${usuarioActual.uid}/credenciales_biometricas/${credencialKeySegura}`), nuevoRegistroDispositivo);
 
-        alert("¡Huella dactilar vinculada con éxito a este dispositivo! Ya puedes checar sin selfies.");
+        mapaCredencialesBiometricas[credencialKeySegura] = nuevoRegistroDispositivo;
+        actualizarBadgeConteoDispositivos();
+        renderizarListaGestionDispositivos();
+
+        alert("¡Excelente! Este dispositivo quedó autorizado. Ya puedes registrar tu entrada/salida usando tu huella o tu clave de celular.");
 
       } catch (err) {
-        console.error("Error al enrolar huella:", err);
-        alert("No se pudo completar el registro biométrico: " + (err.message || "Operación cancelada"));
+        console.warn("Fallo o cancelación en enrolamiento:", err);
+        mostrarModalFallback(accionActual);
       } finally {
         btn.disabled = false;
-        btn.innerHTML = `<i class="fas fa-shield-halved"></i> Vincular Huella de este Teléfono`;
+        btn.innerHTML = `<i class="fas fa-key"></i> Autorizar Huella / PIN en este Teléfono`;
       }
     };
 
-    // Checar Entrada / Salida mediante el sensor de huella
+    // Registrar Entrada o Salida con Huella / PIN
     window.checarConHuella = async (tipo) => {
+      accionActual = tipo;
+
       if (!window.PublicKeyCredential) {
-        alert("Tu navegador no soporta autenticación biométrica. Utiliza el registro por foto.");
+        mostrarModalFallback(tipo);
         return;
       }
 
-      if (!credencialBiometricaRegistrada) {
-        const enrolar = confirm("Aún no tienes registrada la huella de este teléfono. ¿Deseas configurarla ahora?");
-        if (enrolar) {
+      const llavesArray = Object.values(mapaCredencialesBiometricas);
+
+      if (llavesArray.length === 0) {
+        const vincular = confirm("Aún no tienes configurado ningún teléfono para huella. ¿Deseas autorizar este dispositivo ahora?");
+        if (vincular) {
           await vincularBiometriaWebAuthn();
+        } else {
+          mostrarModalFallback(tipo);
         }
         return;
       }
@@ -656,16 +866,16 @@
       const originalHTML = btn.innerHTML;
 
       btn.disabled = true;
-      btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Coloca tu huella...`;
+      btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Coloca tu huella o PIN...`;
 
       try {
         const challenge = new Uint8Array(32);
         window.crypto.getRandomValues(challenge);
 
-        const allowCredentials = [{
-          id: base64ToArrayBuffer(credencialBiometricaRegistrada.id),
+        const allowCredentials = llavesArray.map(c => ({
+          id: base64ToArrayBuffer(c.id),
           type: 'public-key'
-        }];
+        }));
 
         const publicKeyCredentialRequestOptions = {
           challenge: challenge,
@@ -686,15 +896,113 @@
           });
         }
       } catch (err) {
-        console.error("Error de huella:", err);
-        alert("Autenticación biométrica no completada: " + (err.message || "Cancelado por el usuario"));
+        console.warn("No se pudo checar con la biometría registrada:", err);
+        mostrarModalFallback(tipo);
       } finally {
         btn.disabled = false;
         btn.innerHTML = originalHTML;
       }
     };
 
-    // 6. Cámara frontal y compresión (Método alternativo)
+    // ========================================================
+    // 6. DASH FLOTANTE: GESTIÓN DE CELULARES Y PASSKEYS
+    // ========================================================
+    window.abrirModalGestionDispositivos = () => {
+      renderizarListaGestionDispositivos();
+      document.getElementById('modalGestionDispositivos').classList.remove('hidden');
+    };
+
+    window.cerrarModalGestionDispositivos = () => {
+      document.getElementById('modalGestionDispositivos').classList.add('hidden');
+    };
+
+    function renderizarListaGestionDispositivos() {
+      const contenedor = document.getElementById('listaDispositivosEnrolados');
+      contenedor.innerHTML = '';
+
+      const keys = Object.keys(mapaCredencialesBiometricas);
+
+      if (keys.length === 0) {
+        contenedor.innerHTML = `
+          <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 text-center text-slate-500 text-xs">
+            No tienes celulares o tablets autorizados con huella.
+          </div>
+        `;
+        return;
+      }
+
+      const agenteActual = navigator.userAgent.substring(0, 90);
+
+      keys.forEach((key, idx) => {
+        const item = mapaCredencialesBiometricas[key];
+        const esDispositivoActual = item.agente && (item.agente === agenteActual);
+        const fechaLocal = item.fecha_registro ? new Date(item.fecha_registro).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Fecha anterior';
+
+        const card = document.createElement('div');
+        card.className = `p-3 rounded-2xl bg-slate-900/80 border ${esDispositivoActual ? 'border-cyber-cyan/50 shadow-glow-cyan/20' : 'border-cyber-border'} flex items-center justify-between gap-3`;
+
+        card.innerHTML = `
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-9 h-9 rounded-xl ${esDispositivoActual ? 'bg-cyber-cyan/20 text-cyber-cyan border border-cyber-cyan/40' : 'bg-slate-800 text-slate-400 border border-slate-700'} flex items-center justify-center shrink-0">
+              <i class="fas ${item.dispositivo === 'Computadora / Laptop' ? 'fa-laptop' : (item.dispositivo === 'Tablet' ? 'fa-tablet-screen-button' : 'fa-mobile-screen')}"></i>
+            </div>
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="text-xs font-bold text-white truncate">${item.dispositivo || 'Celular'} #${idx + 1}</span>
+                ${esDispositivoActual ? '<span class="text-[9px] font-bold bg-cyber-cyan/20 border border-cyber-cyan/40 text-cyber-cyan px-1.5 py-0.2 rounded-full uppercase">Este Equipo</span>' : ''}
+              </div>
+              <span class="text-[10px] text-slate-400 block truncate">Vinculado: ${fechaLocal}</span>
+            </div>
+          </div>
+          <button onclick="desvincularDispositivo('${key}')" class="p-2.5 rounded-xl bg-cyber-rose/10 hover:bg-cyber-rose/25 text-rose-400 hover:text-white border border-cyber-rose/30 transition shrink-0" title="Desvincular este dispositivo">
+            <i class="fas fa-trash-can text-xs"></i>
+          </button>
+        `;
+
+        contenedor.appendChild(card);
+      });
+    }
+
+    window.desvincularDispositivo = async (keySegura) => {
+      const confirmacion = confirm("¿Estás seguro de desvincular este celular? Para volver a usar su huella tendrás que autorizarlo de nuevo.");
+      if (!confirmacion) return;
+
+      try {
+        await remove(ref(db, `usuarios_reclutadores/${usuarioActual.uid}/credenciales_biometricas/${keySegura}`));
+        delete mapaCredencialesBiometricas[keySegura];
+        
+        actualizarBadgeConteoDispositivos();
+        renderizarListaGestionDispositivos();
+        alert("Dispositivo desvinculado con éxito.");
+      } catch (e) {
+        console.error("Error al desvincular dispositivo:", e);
+        alert("No se pudo desvincular el dispositivo: " + e.message);
+      }
+    };
+
+    // ==========================================
+    // 7. FLUJO DE CONTINGENCIA INTELIGENTE
+    // ==========================================
+    function mostrarModalFallback(tipo) {
+      accionActual = tipo;
+      document.getElementById('modalFallbackOpciones').classList.remove('hidden');
+    }
+
+    window.cerrarFallbackModal = () => {
+      document.getElementById('modalFallbackOpciones').classList.add('hidden');
+    };
+
+    window.ejecutarFallbackSelfie = () => {
+      cerrarFallbackModal();
+      abrirCamaraModal(accionActual);
+    };
+
+    window.ejecutarFallbackVincular = async () => {
+      cerrarFallbackModal();
+      await vincularBiometriaWebAuthn();
+    };
+
+    // 8. Modal de Cámara y Captura Facial
     window.abrirCamaraModal = async (tipo) => {
       accionActual = tipo;
       document.getElementById('modalCamaraTitulo').innerHTML = tipo === 'ENTRADA' 
@@ -758,13 +1066,13 @@
       btn.innerHTML = `<i class="fas fa-circle-dot"></i> Checar`;
     };
 
-    // 7. Persistencia Unificada en Firebase Realtime Database
+    // 9. Persistencia Unificada en Firebase Realtime Database
     async function registrarAsistenciaEnServidor(datosRegistro) {
       const fechaClave = obtenerFechaClave();
       const ahora = new Date();
       const horaStr = ahora.toLocaleTimeString('es-MX', { hour12: false });
 
-      const payloadTurno = {
+      const payloadBase = {
         timestamp: serverTimestamp(),
         hora_local: horaStr,
         metodo: datosRegistro.metodo,
@@ -778,7 +1086,8 @@
         const nodoRef = ref(db, `registro_asistencia_puntualidad/${fechaClave}/${usuarioActual.uid}`);
         
         if (datosRegistro.tipo === 'ENTRADA') {
-          const dictamen = evaluarDictamenEntrada(horaStr);
+          const evalEntrada = evaluarDictamenEntrada(horaStr);
+
           await update(nodoRef, {
             uid: usuarioActual.uid,
             colaborador: usuarioActual.nombre,
@@ -786,33 +1095,58 @@
             rol: usuarioActual.rol,
             division: usuarioActual.division,
             horario_programado: {
-              entrada: HORARIO_ENTRADA_OFICIAL,
-              salida: HORARIO_SALIDA_OFICIAL,
-              tolerancia_mins: TOLERANCIA_MINUTOS
+              ventana_entrada_inicio: VENTANA_ENTRADA_INICIO,
+              ventana_entrada_limite: VENTANA_ENTRADA_LIMITE,
+              horas_jornada: HORAS_JORNADA_BASE
             },
             entrada: {
-              ...payloadTurno,
-              dictamen: dictamen
+              ...payloadBase,
+              dictamen: evalEntrada.dictamen,
+              minutos_retardo: evalEntrada.minutos_retardo,
+              salida_programada_meta: evalEntrada.salida_programada_meta
             },
             estatus_jornada: 'ACTIVO'
           });
+
+          alert(`¡Entrada registrada a las ${horaStr}!\nDictamen: ${evalEntrada.dictamen}\nTu salida meta para cumplir 8 horas es a las: ${evalEntrada.salida_programada_meta}`);
+
         } else {
-          const dictamen = evaluarDictamenSalida(horaStr);
+          // SALIDA: Recuperar hora de entrada para computar exactamente las horas laboradas
+          const horaEntradaRegistrada = asistenciaHoyCargada?.entrada?.hora_local || "09:00:00";
+          const evalSalida = evaluarDictamenSalida(horaStr, horaEntradaRegistrada);
+
           await update(nodoRef, {
             salida: {
-              ...payloadTurno,
-              dictamen: dictamen
+              ...payloadBase,
+              dictamen: evalSalida.dictamen,
+              minutos_laborados: evalSalida.minutos_laborados,
+              horas_laboradas_formato: evalSalida.horas_laboradas_formato,
+              minutos_extra: evalSalida.minutos_extra
             },
             estatus_jornada: 'CONCLUIDO'
           });
-        }
 
-        alert(`¡Asistencia de ${datosRegistro.tipo} registrada con éxito mediante ${datosRegistro.metodo === 'HUELLA_WEBAUTHN' ? 'Huella Biométrica' : 'Selfie'}!`);
+          mostrarModalResumenSalida(evalSalida.horas_laboradas_formato, evalSalida.dictamen);
+        }
 
       } catch (err) {
         alert("Error al escribir registro en el servidor: " + err.message);
       }
     }
+
+    // Modal de Retroalimentación al salir
+    function mostrarModalResumenSalida(horasTexto, dictamen) {
+      document.getElementById('lblResumenHorasTexto').textContent = horasTexto;
+      document.getElementById('lblResumenDictamen').textContent = dictamen;
+      document.getElementById('lblResumenDictamen').className = dictamen === "JORNADA CUMPLIDA" 
+        ? "text-emerald-400 font-bold" 
+        : "text-amber-400 font-bold";
+      document.getElementById('modalResumenSalida').classList.remove('hidden');
+    }
+
+    window.cerrarModalResumenSalida = () => {
+      document.getElementById('modalResumenSalida').classList.add('hidden');
+    };
 
     function actualizarRelojDigital() {
       const ahora = new Date();
