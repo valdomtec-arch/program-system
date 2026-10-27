@@ -32,6 +32,7 @@
           },
           boxShadow: {
             'glow-accent': '0 0 25px -5px rgba(255, 102, 0, 0.4)',
+            'glow-cyan': '0 0 25px -5px rgba(6, 182, 212, 0.4)',
             'glow-card': '0 20px 40px -15px rgba(0, 0, 0, 0.8)'
           }
         }
@@ -47,6 +48,36 @@
     }
     .touch-target {
       min-height: 44px;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      height: 4px;
+      width: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(255, 102, 0, 0.3);
+      border-radius: 9999px;
+    }
+    /* Efecto magnético y resplandor con cursor */
+    .mouse-glow-card {
+      position: relative;
+      overflow: hidden;
+    }
+    .mouse-glow-card::before {
+      content: '';
+      position: absolute;
+      top: var(--mouse-y, -150px);
+      left: var(--mouse-x, -150px);
+      width: 250px;
+      height: 250px;
+      background: radial-gradient(circle, rgba(255, 102, 0, 0.25) 0%, rgba(6, 182, 212, 0.1) 40%, transparent 70%);
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      opacity: 0;
+      z-index: 0;
+    }
+    .mouse-glow-card:hover::before {
+      opacity: 1;
     }
   </style>
 </head>
@@ -118,21 +149,104 @@
       </div>
     </div>
 
-    <!-- FILTROS Y CONTROLES -->
-    <div class="glass-panel p-4 rounded-2xl border border-cyber-border flex flex-wrap items-center justify-between gap-3">
-      <div class="flex items-center gap-2">
-        <label class="text-xs font-mono uppercase text-slate-300 font-bold flex items-center gap-1.5">
-          <i class="fas fa-calendar-day text-cyber-accent"></i> Fecha a Consultar:
-        </label>
-        <input type="date" id="inputFechaFiltro" onchange="cambiarFechaConsulta()" class="bg-cyber-bg border border-cyber-border rounded-xl px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-cyber-accent">
+    <!-- SELECTOR DE FECHAS ERGONÓMICO / MERCADOTECNIA EJECUTIVA -->
+    <section class="glass-panel p-4 sm:p-5 rounded-3xl border border-cyber-border relative z-30 shadow-glow-card">
+      <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+        
+        <!-- CÁPSULA FLOTANTE CON RESPLANDOR MAGNÉTICO AL CURSOR -->
+        <div id="capsulaRangoBtn" class="mouse-glow-card cursor-pointer p-3 sm:px-4 sm:py-3 rounded-2xl bg-slate-900/90 border border-cyber-accent/40 hover:border-cyber-accent shadow-glow-accent/30 transition-all flex items-center justify-between gap-4 select-none touch-target" onclick="togglePopoverAlmanaque()">
+          <div class="flex items-center gap-3 relative z-10">
+            <div class="w-10 h-10 rounded-xl bg-cyber-accent/20 border border-cyber-accent/40 flex items-center justify-center text-cyber-accent">
+              <i class="fas fa-calendar-range text-base"></i>
+            </div>
+            <div>
+              <span class="text-[10px] font-mono uppercase tracking-wider text-slate-400 block">Periodo de Auditoría</span>
+              <div class="text-xs sm:text-sm font-black font-mono text-white flex items-center gap-2" id="txtEtiquetaRangoVisible">
+                <span>Cargando periodo...</span>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 relative z-10 text-cyber-accent">
+            <span id="badgeDiasRango" class="text-[10px] font-mono bg-cyber-accent/15 border border-cyber-accent/30 px-2 py-0.5 rounded-md font-bold">1 día</span>
+            <i class="fas fa-chevron-down text-xs transition-transform duration-300" id="iconoFlechaAlmanaque"></i>
+          </div>
+        </div>
+
+        <!-- ATAJOS EJECUTIVOS HORIZONTALES (TOUCH SCROLLBAR) -->
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0 custom-scrollbar text-xs font-mono">
+          <button onclick="seleccionarPreset('hoy')" class="btn-preset px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 hover:border-cyber-accent text-slate-300 hover:text-white transition whitespace-nowrap">Hoy</button>
+          <button onclick="seleccionarPreset('ayer')" class="btn-preset px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 hover:border-cyber-accent text-slate-300 hover:text-white transition whitespace-nowrap">Ayer</button>
+          <button onclick="seleccionarPreset('semana_actual')" class="btn-preset px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 hover:border-cyber-accent text-slate-300 hover:text-white transition whitespace-nowrap">Esta Semana</button>
+          <button onclick="seleccionarPreset('semana_anterior')" class="btn-preset px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 hover:border-cyber-accent text-slate-300 hover:text-white transition whitespace-nowrap">Semana Anterior</button>
+          <button onclick="seleccionarPreset('quincena_1')" class="btn-preset px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 hover:border-cyber-accent text-slate-300 hover:text-white transition whitespace-nowrap">1ª Quincena</button>
+          <button onclick="seleccionarPreset('quincena_2')" class="btn-preset px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 hover:border-cyber-accent text-slate-300 hover:text-white transition whitespace-nowrap">2ª Quincena</button>
+          <button onclick="seleccionarPreset('mes_actual')" class="btn-preset px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 hover:border-cyber-accent text-slate-300 hover:text-white transition whitespace-nowrap">Mes en Curso</button>
+          <button onclick="seleccionarPreset('mes_anterior')" class="btn-preset px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 hover:border-cyber-accent text-slate-300 hover:text-white transition whitespace-nowrap">Mes Anterior</button>
+        </div>
+
+        <div class="flex items-center justify-between lg:justify-end gap-2 text-right">
+          <span id="lblUltimaSincronizacion" class="text-[11px] text-slate-400 font-mono">En vivo</span>
+          <button onclick="ejecutarConsultaPeriodo()" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs transition" title="Refrescar auditoría">
+            <i class="fas fa-rotate"></i>
+          </button>
+        </div>
       </div>
-      <div class="flex items-center gap-2">
-        <span id="lblUltimaSincronizacion" class="text-[11px] text-slate-400 font-mono">En vivo</span>
-        <button onclick="cargarAsistenciasFecha()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs">
-          <i class="fas fa-rotate"></i>
-        </button>
+
+      <!-- ALMANAQUE / CALENDARIO INTERACTIVO FLOTANTE -->
+      <div id="popoverAlmanaque" class="hidden absolute top-full left-0 right-0 sm:right-auto sm:w-[680px] mt-3 p-4 sm:p-5 glass-panel rounded-3xl border border-cyber-accent/60 shadow-glow-card z-50 animate-fadeIn">
+        
+        <!-- HEADER DEL ALMANAQUE: NAVEGACIÓN Y SELECTORES -->
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 border-b border-cyber-border/80 pb-3 mb-4">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-mono font-bold text-cyber-accent uppercase tracking-wider">
+              <i class="fas fa-calendar-alt"></i> Selector Ejecutivo de Periodo
+            </span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="cambiarMesRelativo(-1)" class="p-2 rounded-xl bg-slate-800 hover:bg-cyber-accent hover:text-slate-950 text-slate-300 transition text-xs">
+              <i class="fas fa-chevron-left"></i>
+            </button>
+            <span id="txtMesAnoVisual" class="font-mono font-bold text-xs text-white min-w-[130px] text-center uppercase">--</span>
+            <button onclick="cambiarMesRelativo(1)" class="p-2 rounded-xl bg-slate-800 hover:bg-cyber-accent hover:text-slate-950 text-slate-300 transition text-xs">
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- SELECTORES DIRECTOS (DESDE / HASTA) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4 font-mono">
+          <div class="p-2.5 rounded-xl bg-slate-950/70 border border-cyber-border">
+            <label class="text-[10px] text-cyber-cyan uppercase font-bold block mb-1">
+              <i class="fas fa-play text-[8px]"></i> Fecha Inicio:
+            </label>
+            <input type="date" id="inputPickerInicio" onchange="actualizarDesdeInputsManuales()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-cyber-cyan">
+          </div>
+          <div class="p-2.5 rounded-xl bg-slate-950/70 border border-cyber-border">
+            <label class="text-[10px] text-cyber-accent uppercase font-bold block mb-1">
+              <i class="fas fa-flag-checkered text-[8px]"></i> Fecha Fin:
+            </label>
+            <input type="date" id="inputPickerFin" onchange="actualizarDesdeInputsManuales()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-cyber-accent">
+          </div>
+        </div>
+
+        <!-- REJILLA DE DÍAS (LUNES A DOMINGO) -->
+        <div class="grid grid-cols-7 gap-1 text-center font-mono text-[11px] text-slate-400 mb-2 font-bold">
+          <div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div><div>Dom</div>
+        </div>
+        <div id="gridDiasCalendario" class="grid grid-cols-7 gap-1 font-mono text-xs">
+          <!-- Días renderizados con JS -->
+        </div>
+
+        <!-- FOOTER ACCIONES -->
+        <div class="flex items-center justify-between border-t border-cyber-border/80 pt-3 mt-4 text-xs font-mono">
+          <span class="text-slate-400 text-[11px]">Clic para seleccionar inicio y fin de periodo.</span>
+          <div class="flex items-center gap-2">
+            <button onclick="cerrarPopoverAlmanaque()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300">Cerrar</button>
+            <button onclick="aplicarRangoCalendario()" class="px-4 py-1.5 rounded-xl bg-cyber-accent hover:bg-cyber-accentHover text-slate-950 font-bold shadow-glow-accent">Aplicar Periodo</button>
+          </div>
+        </div>
       </div>
-    </div>
+    </section>
 
     <!-- TABLA DE VOLCADO DE ASISTENCIAS -->
     <section class="glass-panel rounded-3xl border border-cyber-border overflow-hidden shadow-glow-card">
@@ -140,7 +254,8 @@
         <table class="w-full text-left text-xs border-collapse">
           <thead>
             <tr class="bg-slate-950/80 border-b border-cyber-border text-slate-300 font-mono uppercase font-bold">
-              <th class="p-3.5 pl-5">Colaborador / Rol</th>
+              <th class="p-3.5 pl-5">Fecha</th>
+              <th class="p-3.5">Colaborador / Rol</th>
               <th class="p-3.5 text-center">Evidencia Entrada</th>
               <th class="p-3.5">Hora Entrada</th>
               <th class="p-3.5 text-center">Dictamen Entrada</th>
@@ -151,7 +266,7 @@
             </tr>
           </thead>
           <tbody id="tablaAsistenciasBody" class="divide-y divide-cyber-border/40 font-mono text-slate-200">
-            <tr><td colspan="8" class="p-6 text-center text-slate-500">Cargando registros...</td></tr>
+            <tr><td colspan="9" class="p-6 text-center text-slate-500">Cargando registros...</td></tr>
           </tbody>
         </table>
       </div>
@@ -193,21 +308,51 @@
     const db = getDatabase(app);
 
     let usuarioSesion = null;
-    let fechaActualSeleccionada = '';
-    let datosAsistenciasMemoria = {};
+    let fechaInicioSeleccionada = '';
+    let fechaFinSeleccionada = '';
+    let fechaCursorMes = new Date();
+    let seleccionPasoTemporal = null; // null | 'inicio'
+    let listenerActivoDesuscripcion = null;
+    let datosConsolidadosMemoria = []; // [{ fecha, uid, ...item }]
+
+    // UTILIDADES DE FORMATO FECHAS (YYYY-MM-DD)
+    const formatearYYYYMMDD = (d) => {
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    };
+
+    const parsearFechaLocal = (str) => {
+      const [y, m, d] = str.split('-').map(Number);
+      return new Date(y, m - 1, d);
+    };
 
     document.addEventListener("DOMContentLoaded", () => {
-      establecerFechaHoy();
+      const hoy = new Date();
+      fechaInicioSeleccionada = formatearYYYYMMDD(hoy);
+      fechaFinSeleccionada = formatearYYYYMMDD(hoy);
+      fechaCursorMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+
+      document.getElementById('inputPickerInicio').value = fechaInicioSeleccionada;
+      document.getElementById('inputPickerFin').value = fechaFinSeleccionada;
+      actualizarEtiquetaRangoVisible();
+
+      iniciarSeguimientoMouse();
       validarAccesoGobernanza();
     });
 
-    function establecerFechaHoy() {
-      const hoy = new Date();
-      const yyyy = hoy.getFullYear();
-      const mm = String(hoy.getMonth() + 1).padStart(2, '0');
-      const dd = String(hoy.getDate()).padStart(2, '0');
-      fechaActualSeleccionada = `${yyyy}-${mm}-${dd}`;
-      document.getElementById('inputFechaFiltro').value = fechaActualSeleccionada;
+    // EFECTO MAGNÉTICO CON EL MOUSE EN PC
+    function iniciarSeguimientoMouse() {
+      const card = document.getElementById('capsulaRangoBtn');
+      if (!card) return;
+      card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        card.style.setProperty('--mouse-x', `${x}px`);
+        card.style.setProperty('--mouse-y', `${y}px`);
+      });
     }
 
     // APLICACIÓN ESTRICTA DEL MODELO DE GOBERNANZA RBAC (NIVEL 4 Y 5)
@@ -260,7 +405,7 @@
           candado.classList.add('hidden');
           panel.classList.remove('hidden');
 
-          escucharAsistenciasEnVivo();
+          ejecutarConsultaPeriodo();
 
         } catch (e) {
           console.error("Error Gobernanza M1:", e);
@@ -269,70 +414,95 @@
       });
     }
 
-    function escucharAsistenciasEnVivo() {
-      const path = `registro_asistencia_puntualidad/${fechaActualSeleccionada}`;
-      onValue(ref(db, path), (snap) => {
-        datosAsistenciasMemoria = snap.val() || {};
-        renderizarTabla();
-        document.getElementById('lblUltimaSincronizacion').textContent = `Sync: ${new Date().toLocaleTimeString('es-MX')}`;
-      });
+    // LISTAR DÍAS COMPRENDIDOS ENTRE DOS FECHAS
+    function obtenerArrayDias(fInicio, fFin) {
+      const dias = [];
+      let actual = parsearFechaLocal(fInicio);
+      const fin = parsearFechaLocal(fFin);
+      while (actual <= fin) {
+        dias.push(formatearYYYYMMDD(actual));
+        actual.setDate(actual.getDate() + 1);
+      }
+      return dias;
     }
 
-    window.cambiarFechaConsulta = () => {
-      const f = document.getElementById('inputFechaFiltro').value;
-      if (!f) return;
-      fechaActualSeleccionada = f;
-      escucharAsistenciasEnVivo();
+    // CONSULTA MULTIDÍA O EN VIVO
+    window.ejecutarConsultaPeriodo = async () => {
+      if (listenerActivoDesuscripcion) {
+        listenerActivoDesuscripcion();
+        listenerActivoDesuscripcion = null;
+      }
+
+      const listaDias = obtenerArrayDias(fechaInicioSeleccionada, fechaFinSeleccionada);
+      const badgeDias = document.getElementById('badgeDiasRango');
+      badgeDias.textContent = listaDias.length === 1 ? '1 día (En Vivo)' : `${listaDias.length} días`;
+
+      // CASO 1: Un solo día -> Suscripción reactiva con onValue
+      if (listaDias.length === 1) {
+        const path = `registro_asistencia_puntualidad/${listaDias[0]}`;
+        const refDia = ref(db, path);
+        listenerActivoDesuscripcion = onValue(refDia, (snap) => {
+          const raw = snap.val() || {};
+          datosConsolidadosMemoria = Object.keys(raw).map(uid => ({
+            fecha: listaDias[0],
+            uid: uid,
+            ...raw[uid]
+          }));
+          renderizarTablaConsolidada();
+          document.getElementById('lblUltimaSincronizacion').textContent = `Sync: ${new Date().toLocaleTimeString('es-MX')}`;
+        });
+        return;
+      }
+
+      // CASO 2: Rango multidía -> Consultas paralelas con get()
+      document.getElementById('lblUltimaSincronizacion').textContent = 'Consultando periodo...';
+      const tbody = document.getElementById('tablaAsistenciasBody');
+      tbody.innerHTML = `<tr><td colspan="9" class="p-8 text-center text-cyber-accent font-mono"><i class="fas fa-spinner fa-spin mr-2"></i>Consolidando ${listaDias.length} fechas en memoria...</td></tr>`;
+
+      try {
+        const promesas = listaDias.map(dia => get(ref(db, `registro_asistencia_puntualidad/${dia}`)));
+        const snapshots = await Promise.all(promesas);
+
+        const acumulado = [];
+        snapshots.forEach((snap, idx) => {
+          if (snap.exists()) {
+            const fechaVal = listaDias[idx];
+            const dataObj = snap.val();
+            Object.keys(dataObj).forEach(uid => {
+              acumulado.push({
+                fecha: fechaVal,
+                uid: uid,
+                ...dataObj[uid]
+              });
+            });
+          }
+        });
+
+        // Orden cronológico inverso (fechas más recientes primero)
+        acumulado.sort((a, b) => (b.fecha + (b.entrada?.hora_local || '')).localeCompare(a.fecha + (a.entrada?.hora_local || '')));
+        datosConsolidadosMemoria = acumulado;
+        renderizarTablaConsolidada();
+        document.getElementById('lblUltimaSincronizacion').textContent = `Corte: ${new Date().toLocaleTimeString('es-MX')}`;
+      } catch (err) {
+        console.error("Error al consolidar rango:", err);
+        tbody.innerHTML = `<tr><td colspan="9" class="p-8 text-center text-cyber-rose font-mono">Error de auditoría al leer rango de fechas.</td></tr>`;
+      }
     };
 
-    window.cargarAsistenciasFecha = () => {
-      escucharAsistenciasEnVivo();
-    };
-
-    // Renderizar evidencia (Distingue Huella vs Selfie)
-    function generarBadgeEvidencia(evento, colaborador) {
-      if (!evento) {
-        return `<span class="text-slate-600 text-[10px] font-mono">—</span>`;
-      }
-
-      if (evento.metodo === 'HUELLA_WEBAUTHN') {
-        return `
-          <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono text-[10px] font-bold" title="Autenticación con Huella Biométrica FIDO2">
-            <i class="fas fa-fingerprint text-xs"></i> <span>Huella</span>
-          </div>
-        `;
-      }
-
-      if (evento.foto_b64) {
-        return `
-          <img src="${evento.foto_b64}" 
-               onclick="abrirModalZoom('${evento.foto_b64}', '${colaborador}', '${evento.hora_local || ''}')" 
-               class="w-10 h-10 rounded-xl object-cover border border-cyber-accent cursor-pointer hover:scale-105 transition mx-auto" 
-               title="Ver selfie">
-        `;
-      }
-
-      return `<span class="text-slate-500 text-[10px]">Sin evidencia</span>`;
-    }
-
-    function renderizarTabla() {
+    function renderizarTablaConsolidada() {
       const tbody = document.getElementById('tablaAsistenciasBody');
       tbody.innerHTML = '';
 
-      const uids = Object.keys(datosAsistenciasMemoria);
-      
       let tot = 0, aTiempo = 0, retardos = 0, activos = 0;
 
-      if (uids.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-500 font-mono">No hay registros de asistencia para el día ${fechaActualSeleccionada}.</td></tr>`;
+      if (datosConsolidadosMemoria.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="9" class="p-8 text-center text-slate-500 font-mono">No hay registros de asistencia entre el ${fechaInicioSeleccionada} y el ${fechaFinSeleccionada}.</td></tr>`;
         actualizarKPIs(0, 0, 0, 0);
         return;
       }
 
-      uids.forEach(uid => {
-        const item = datosAsistenciasMemoria[uid];
+      datosConsolidadosMemoria.forEach(item => {
         tot++;
-
         const esATiempo = item.entrada?.dictamen === 'A TIEMPO';
         if (esATiempo) aTiempo++; else retardos++;
 
@@ -354,7 +524,8 @@
           : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/30">CONCLUIDO</span>`;
 
         tr.innerHTML = `
-          <td class="p-3.5 pl-5">
+          <td class="p-3.5 pl-5 font-bold text-cyber-cyan text-xs">${item.fecha}</td>
+          <td class="p-3.5">
             <div class="font-bold text-white text-xs">${item.colaborador || 'Colaborador'}</div>
             <div class="text-[10px] text-slate-400">${item.rol || 'General'} • <span class="uppercase">${item.division || 'Nacional'}</span></div>
           </td>
@@ -382,6 +553,27 @@
       document.getElementById('kpiActivos').textContent = act;
     }
 
+    function generarBadgeEvidencia(evento, colaborador) {
+      if (!evento) return `<span class="text-slate-600 text-[10px] font-mono">—</span>`;
+      if (evento.metodo === 'HUELLA_WEBAUTHN') {
+        return `
+          <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono text-[10px] font-bold" title="Autenticación con Huella Biométrica FIDO2">
+            <i class="fas fa-fingerprint text-xs"></i> <span>Huella</span>
+          </div>
+        `;
+      }
+      if (evento.foto_b64) {
+        return `
+          <img src="${evento.foto_b64}" 
+               onclick="abrirModalZoom('${evento.foto_b64}', '${colaborador}', '${evento.hora_local || ''}')" 
+               class="w-10 h-10 rounded-xl object-cover border border-cyber-accent cursor-pointer hover:scale-105 transition mx-auto" 
+               title="Ver selfie">
+        `;
+      }
+      return `<span class="text-slate-500 text-[10px]">Sin evidencia</span>`;
+    }
+
+    // MODAL VISOR FOTOGRAFÍA
     window.abrirModalZoom = (src, titulo, hora) => {
       document.getElementById('imgZoomElemento').src = src;
       document.getElementById('txtTituloModalFoto').textContent = titulo;
@@ -393,16 +585,217 @@
       document.getElementById('modalZoomFoto').classList.add('hidden');
     };
 
-    // EXPORTACIÓN A CSV CON IDENTIFICACIÓN DE MÉTODO (HUELLA / SELFIE)
+    // ==========================================
+    // CONTROL DEL ALMANAQUE Y SELECCIÓN DE RANGO
+    // ==========================================
+    window.togglePopoverAlmanaque = () => {
+      const popover = document.getElementById('popoverAlmanaque');
+      const icono = document.getElementById('iconoFlechaAlmanaque');
+      const isHidden = popover.classList.contains('hidden');
+      if (isHidden) {
+        popover.classList.remove('hidden');
+        icono.classList.add('rotate-180');
+        renderizarAlmanaqueMes();
+      } else {
+        popover.classList.add('hidden');
+        icono.classList.remove('rotate-180');
+      }
+    };
+
+    window.cerrarPopoverAlmanaque = () => {
+      document.getElementById('popoverAlmanaque').classList.add('hidden');
+      document.getElementById('iconoFlechaAlmanaque').classList.remove('rotate-180');
+    };
+
+    window.cambiarMesRelativo = (delta) => {
+      fechaCursorMes.setMonth(fechaCursorMes.getMonth() + delta);
+      renderizarAlmanaqueMes();
+    };
+
+    function renderizarAlmanaqueMes() {
+      const contenedor = document.getElementById('gridDiasCalendario');
+      contenedor.innerHTML = '';
+
+      const y = fechaCursorMes.getFullYear();
+      const m = fechaCursorMes.getMonth();
+
+      const nombresMeses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+      document.getElementById('txtMesAnoVisual').textContent = `${nombresMeses[m]} ${y}`;
+
+      const primerDiaMes = new Date(y, m, 1);
+      const ultimoDiaMes = new Date(y, m + 1, 0);
+
+      // Ajuste ISO: Lunes = 0, Domingo = 6
+      let diaSemanaInicio = primerDiaMes.getDay() - 1;
+      if (diaSemanaInicio === -1) diaSemanaInicio = 6;
+
+      // Espacios vacíos antes del día 1
+      for (let i = 0; i < diaSemanaInicio; i++) {
+        const vacio = document.createElement('div');
+        vacio.className = "h-9 rounded-lg opacity-10";
+        contenedor.appendChild(vacio);
+      }
+
+      const fIni = parsearFechaLocal(fechaInicioSeleccionada);
+      const fFin = parsearFechaLocal(fechaFinSeleccionada);
+
+      for (let d = 1; d <= ultimoDiaMes.getDate(); d++) {
+        const fechaActual = new Date(y, m, d);
+        const strFecha = formatearYYYYMMDD(fechaActual);
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = d;
+        btn.className = "h-9 rounded-xl flex items-center justify-center font-bold text-xs transition relative ";
+
+        const esInicio = strFecha === fechaInicioSeleccionada;
+        const esFin = strFecha === fechaFinSeleccionada;
+        const estaEnRango = fechaActual > fIni && fechaActual < fFin;
+
+        if (esInicio || esFin) {
+          btn.className += "bg-cyber-accent text-slate-950 shadow-glow-accent font-black z-10 scale-105";
+        } else if (estaEnRango) {
+          btn.className += "bg-cyber-accent/20 text-cyber-accent border border-cyber-accent/30";
+        } else {
+          btn.className += "bg-slate-900/80 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-800";
+        }
+
+        btn.onclick = () => manejarClickDiaCalendario(strFecha);
+        contenedor.appendChild(btn);
+      }
+    }
+
+    function manejarClickDiaCalendario(fechaStr) {
+      if (!seleccionPasoTemporal) {
+        // Primer clic: define inicio provisional
+        seleccionPasoTemporal = fechaStr;
+        fechaInicioSeleccionada = fechaStr;
+        fechaFinSeleccionada = fechaStr;
+      } else {
+        // Segundo clic: define rango ordenado
+        const d1 = parsearFechaLocal(seleccionPasoTemporal);
+        const d2 = parsearFechaLocal(fechaStr);
+
+        if (d1 <= d2) {
+          fechaInicioSeleccionada = formatearYYYYMMDD(d1);
+          fechaFinSeleccionada = formatearYYYYMMDD(d2);
+        } else {
+          fechaInicioSeleccionada = formatearYYYYMMDD(d2);
+          fechaFinSeleccionada = formatearYYYYMMDD(d1);
+        }
+        seleccionPasoTemporal = null;
+      }
+
+      document.getElementById('inputPickerInicio').value = fechaInicioSeleccionada;
+      document.getElementById('inputPickerFin').value = fechaFinSeleccionada;
+      renderizarAlmanaqueMes();
+    }
+
+    window.actualizarDesdeInputsManuales = () => {
+      let fIni = document.getElementById('inputPickerInicio').value;
+      let fFin = document.getElementById('inputPickerFin').value;
+
+      if (!fIni && fFin) fIni = fFin;
+      if (fIni && !fFin) fFin = fIni;
+
+      if (fIni > fFin) {
+        const tmp = fIni;
+        fIni = fFin;
+        fFin = tmp;
+        document.getElementById('inputPickerInicio').value = fIni;
+        document.getElementById('inputPickerFin').value = fFin;
+      }
+
+      fechaInicioSeleccionada = fIni;
+      fechaFinSeleccionada = fFin;
+      renderizarAlmanaqueMes();
+    };
+
+    window.aplicarRangoCalendario = () => {
+      actualizarEtiquetaRangoVisible();
+      cerrarPopoverAlmanaque();
+      ejecutarConsultaPeriodo();
+    };
+
+    function actualizarEtiquetaRangoVisible() {
+      const txt = document.getElementById('txtEtiquetaRangoVisible');
+      if (fechaInicioSeleccionada === fechaFinSeleccionada) {
+        txt.innerHTML = `<i class="fas fa-calendar-day text-cyber-accent"></i> ${fechaInicioSeleccionada}`;
+      } else {
+        txt.innerHTML = `<span class="text-cyber-cyan">${fechaInicioSeleccionada}</span> <i class="fas fa-arrow-right text-[10px] text-slate-500"></i> <span class="text-cyber-accent">${fechaFinSeleccionada}</span>`;
+      }
+    }
+
+    // PRESETS EJECUTIVOS DIRECTOS
+    window.seleccionarPreset = (tipo) => {
+      const hoy = new Date();
+      let f1 = new Date();
+      let f2 = new Date();
+
+      switch (tipo) {
+        case 'hoy':
+          f1 = new Date();
+          f2 = new Date();
+          break;
+        case 'ayer':
+          f1.setDate(hoy.getDate() - 1);
+          f2.setDate(hoy.getDate() - 1);
+          break;
+        case 'semana_actual': {
+          let day = hoy.getDay();
+          let diffToMon = (day === 0 ? -6 : 1) - day;
+          f1.setDate(hoy.getDate() + diffToMon);
+          f2 = new Date(f1);
+          f2.setDate(f1.getDate() + 6);
+          break;
+        }
+        case 'semana_anterior': {
+          let day = hoy.getDay();
+          let diffToMon = (day === 0 ? -6 : 1) - day;
+          f2.setDate(hoy.getDate() + diffToMon - 1);
+          f1 = new Date(f2);
+          f1.setDate(f2.getDate() - 6);
+          break;
+        }
+        case 'quincena_1':
+          f1 = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+          f2 = new Date(hoy.getFullYear(), hoy.getMonth(), 15);
+          break;
+        case 'quincena_2':
+          f1 = new Date(hoy.getFullYear(), hoy.getMonth(), 16);
+          f2 = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0);
+          break;
+        case 'mes_actual':
+          f1 = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+          f2 = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0);
+          break;
+        case 'mes_anterior':
+          f1 = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
+          f2 = new Date(hoy.getFullYear(), hoy.getMonth(), 0);
+          break;
+      }
+
+      fechaInicioSeleccionada = formatearYYYYMMDD(f1);
+      fechaFinSeleccionada = formatearYYYYMMDD(f2);
+      fechaCursorMes = new Date(f1.getFullYear(), f1.getMonth(), 1);
+
+      document.getElementById('inputPickerInicio').value = fechaInicioSeleccionada;
+      document.getElementById('inputPickerFin').value = fechaFinSeleccionada;
+      
+      actualizarEtiquetaRangoVisible();
+      cerrarPopoverAlmanaque();
+      ejecutarConsultaPeriodo();
+    };
+
+    // EXPORTACIÓN A CSV MULTIDÍA
     window.descargarReporteCSV = () => {
-      const uids = Object.keys(datosAsistenciasMemoria);
-      if (uids.length === 0) {
-        alert("No hay registros para exportar en la fecha seleccionada.");
+      if (datosConsolidadosMemoria.length === 0) {
+        alert("No hay registros consolidados para exportar en el periodo seleccionado.");
         return;
       }
 
       const encabezados = [
-        "Fecha", 
+        "Fecha",
         "Colaborador", 
         "Rol", 
         "División", 
@@ -417,13 +810,12 @@
         "Estatus"
       ];
       
-      const filas = uids.map(uid => {
-        const item = datosAsistenciasMemoria[uid];
+      const filas = datosConsolidadosMemoria.map(item => {
         const metEntrada = item.entrada?.metodo === 'HUELLA_WEBAUTHN' ? 'Huella Móvil' : (item.entrada?.foto_b64 ? 'Selfie' : 'N/D');
         const metSalida = item.salida?.metodo === 'HUELLA_WEBAUTHN' ? 'Huella Móvil' : (item.salida?.foto_b64 ? 'Selfie' : 'N/D');
 
         return [
-          `"${fechaActualSeleccionada}"`,
+          `"${item.fecha || ''}"`,
           `"${item.colaborador || ''}"`,
           `"${item.rol || ''}"`,
           `"${item.division || ''}"`,
@@ -444,7 +836,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `Reporte_Asistencia_${fechaActualSeleccionada}.csv`;
+      a.download = `Reporte_Auditoria_${fechaInicioSeleccionada}_al_${fechaFinSeleccionada}.csv`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
